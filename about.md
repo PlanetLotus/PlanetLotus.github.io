@@ -4,8 +4,19 @@ title: About
 permalink: /about/
 ---
 
-This is the base Jekyll theme. You can find out more info about customizing your Jekyll theme, as well as basic Jekyll usage documentation at [jekyllrb.com](http://jekyllrb.com/)
+### Introducing My Commander Keen 5 Clone
 
-You can find the source code for the Jekyll new theme at: [github.com/jglovier/jekyll-new](https://github.com/jglovier/jekyll-new)
+I have a project under active development. As noted in its
+[repo](https://github.com/PlanetLotus/keen5-linux), the main goals of this
+project are to practice C++ and OOP (and have fun doing it). Provided it
+doesn't take away from development time too much, I'd like to start blogging
+about my progress. I found a nifty screen capture program called
+[recordMyDesktop](http://sourceforge.net/projects/recordmydesktop/) which gave
+me some hope that this isn't too painful to accomplish.
 
-You can find the source code for Jekyll at [github.com/jekyll/jekyll](https://github.com/jekyll/jekyll)
+Given that I'm already ~9 months into development as of the time of this
+writing, a lot of awesome development, bugs, and learning has gone undocumented
+except in the form of commits. I'm hoping to address the highlights of each
+feature with a short demo clip and short blog post.
+
+![](http://upload.wikimedia.org/wikipedia/en/8/88/Commander_Keen_in_Goodbye_Galaxy_title_screen.png)
