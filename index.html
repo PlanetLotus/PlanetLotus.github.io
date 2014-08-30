@@ -1,51 +1,23 @@
-<!DOCTYPE html>
-<html>
+---
+layout: default
+---
 
-  <head>
-    <meta charset='utf-8'>
-    <meta http-equiv="X-UA-Compatible" content="chrome=1">
-    <meta name="description" content="Planetlotus.github.io : ">
+<div class="home">
 
-    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
+  <h1 class="page-heading">Posts</h1>
 
-    <title>Planetlotus.github.io</title>
-  </head>
+  <ul class="post-list">
+    {% for post in site.posts %}
+      <li>
+        <span class="post-meta">{{ post.date | date: "%b %-d, %Y" }}</span>
 
-  <body>
+        <h2>
+          <a class="post-link" href="{{ post.url | prepend: site.baseurl }}">{{ post.title }}</a>
+        </h2>
+      </li>
+    {% endfor %}
+  </ul>
 
-    <!-- HEADER -->
-    <div id="header_wrap" class="outer">
-        <header class="inner">
-          <a id="forkme_banner" href="https://github.com/PlanetLotus">View on GitHub</a>
+  <p class="rss-subscribe">subscribe <a href="{{ "/feed.xml" | prepend: site.baseurl }}">via RSS</a></p>
 
-          <h1 id="project_title">Planetlotus.github.io</h1>
-          <h2 id="project_tagline"></h2>
-
-        </header>
-    </div>
-
-    <!-- MAIN CONTENT -->
-    <div id="main_content_wrap" class="outer">
-      <section id="main_content" class="inner">
-        <h3>
-<a name="introducing-my-commander-keen-5-clone" class="anchor" href="#introducing-my-commander-keen-5-clone"><span class="octicon octicon-link"></span></a>Introducing My Commander Keen 5 Clone</h3>
-
-<p>I have a project under active development. As noted in its <a href="https://github.com/PlanetLotus/keen5-linux">repo</a>, the main goals of this project are to practice C++ and OOP (and have fun doing it). Provided it doesn't take away from development time too much, I'd like to start blogging about my progress. I found a nifty screen capture program called <a href="http://sourceforge.net/projects/recordmydesktop/">recordMyDesktop</a> which gave me some hope that this isn't too painful to accomplish.</p>
-
-<p>Given that I'm already ~9 months into development as of the time of this writing, a lot of awesome development, bugs, and learning has gone undocumented except in the form of commits. I'm hoping to address the highlights of each feature with a short demo clip and short blog post.</p>
-
-<p><img src="http://upload.wikimedia.org/wikipedia/en/8/88/Commander_Keen_in_Goodbye_Galaxy_title_screen.png" alt=""></p>
-      </section>
-    </div>
-
-    <!-- FOOTER  -->
-    <div id="footer_wrap" class="outer">
-      <footer class="inner">
-        <p>Published with <a href="http://pages.github.com">GitHub Pages</a></p>
-      </footer>
-    </div>
-
-    
-
-  </body>
-</html>
+</div>
