@@ -8,6 +8,7 @@ I recently finished the AI for Sparky, the most basic enemy unit in the game. AI
 - Patrol
 - Climb up pole
 - Climb down pole
+- Change direction
 - Fix machine
 - Stunned
 
@@ -30,9 +31,14 @@ Here are some notes of mine regarding each state:
 - Kill Keen on contact
 - Exit to ground when colliding with a tile with top-collision (state = `PATROL`)
 
+### Change direction
+
+- Play animation for a few calls
+- When done, go to previous state
+
 ### Fix machine
 
-- Play animation for a few frames
+- Play animation for a few calls
 - When done, patrol (state = `PATROL`)
 
 ### Stunned
