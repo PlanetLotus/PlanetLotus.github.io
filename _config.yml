@@ -10,3 +10,6 @@ github_username:  PlanetLotus
 
 # Build settings
 markdown: kramdown
+syntax-highlighting:
+    enabled: true
+    css: syntax.css
