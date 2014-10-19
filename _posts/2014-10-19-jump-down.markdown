@@ -1,0 +1,74 @@
+---
+layout: post
+title:  "Jumping Down From Platforms"
+---
+This feature was simple enough. I was actually very fortunate...it worked on
+the first try. Because of its simplicity, this one's a little easier to show,
+and the single commit can be found on my [github
+repo](https://github.com/PlanetLotus/keen5-linux/commit/478e558128273ffd0bff4101a6d213475e3e9519).
+
+The algorithm is pretty straightforward, but maybe documenting it here will
+help someone (...or, more likely, myself) in the future. Below was my approach
+to the problem. A video demo is embedded at the bottom.
+
+### The Problem
+
+"Jumping down" refers to the ability to press a button to fall through the
+platform you're currently standing on. In Commander Keen 5, this is possible on
+moving platforms and any other tiles that have top but not bottom collision.
+
+Specific to Commander Keen, you have to be holding the down arrow key (which
+makes your character look down) and then press ctrl to jump down. If
+the conditions aren't met, this simply does nothing. If they are met, my
+algorithm simply turns off y-collision for a single loop, letting gravity take over.
+
+### The Specifics
+
+The first step was to detect when the player was holding down the down arrow. I
+already have a
+[class](https://github.com/PlanetLotus/keen5-linux/blob/master/src/Controller.cpp)
+for this but didn't look for this key yet.
+
+```c++
+if (state[SDL_SCANCODE_LCTRL]) {
+    if (controllerRef.isHoldingDown && !controllerRef.isHoldingCtrl) {
+        jumpDown();
+    } else if (!controllerRef.isHoldingDown) {
+        jump();
+        lookTimer = 0;
+    }
+    controllerRef.isHoldingCtrl = true;
+}
+```
+
+Next, the `jumpDown()` method. The goal here is, more precisely, to check
+whether we can jump down.
+
+```c++
+void Player::jumpDown() {
+    if (!isOnGround) return;
+
+    if (platformStandingOn == NULL) {
+        Tile* tile = getTileUnderFeet();
+        if (tile == NULL || tile->getCollideBottom() || !tile->getCollideTop())
+            return;
+    }
+
+    // Verified that Keen is on a platform or valid tile to jump down from
+    // Turn off collision for one update loop
+    isOnGround = false;
+    platformStandingOn = NULL;
+    isJumpingDown = true;
+    lookTimer = 0;
+}
+```
+
+Note the `isJumpingDown = true` at the bottom. This tells code in the
+`update()` loop to ignore y-collision. The `update()` code isn't organized such
+that it's very easy to show, but the jump down functionality is pretty simple.
+For anything that would normally depend on y-collision (such as tile and
+platform collision), it does an additional check for `isJumpingDown`.
+If it's true, it doesn't do its routine check. Then, at the bottom of
+`update()`, I set `isJumpingDown = false` to reset it.
+
+<iframe width="560" height="315" src="//www.youtube.com/embed/0dpIANDihlI" frameborder="0" allowfullscreen></iframe>
