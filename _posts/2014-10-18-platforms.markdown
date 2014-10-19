@@ -29,9 +29,9 @@ player with it.
 This doesn't sound too hard. As usual, I expected things to be harder than it
 sounded, but only so much. I broke this problem into a few pieces:
 
-1) Treat the platform like the floor. No movement, and get collision working
-2) Add movement to the platform
-3) Move the player with the platform
+1. Treat the platform like the floor. No movement, and get collision working
+2. Add movement to the platform
+3. Move the player with the platform
 
 In these distinct pieces, this sounds simple enough. After all, the only thing
 I hadn't done before was the third step, and that should be as simple as
@@ -89,11 +89,11 @@ with debugging this for hours before taking a few days off.
 
 I started over. This was my new thought process:
 
-1) Check if the player is standing on the platform (that is, top of platform ==
+1. Check if the player is standing on the platform (that is, top of platform ==
 bottom of player) *before* the platform's position is updated. If so, store
 the platform's handle.
-2) Update the platform.
-3) As for the player, check if there's a platform handle. If so, shift the
+2. Update the platform.
+3. As for the player, check if there's a platform handle. If so, shift the
 character by the platform's velocities as before. If not, check for an initial
 collision.
 
