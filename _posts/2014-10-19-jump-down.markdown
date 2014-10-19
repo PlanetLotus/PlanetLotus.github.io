@@ -29,7 +29,7 @@ already have a
 [class](https://github.com/PlanetLotus/keen5-linux/blob/master/src/Controller.cpp)
 for this but didn't look for this key yet.
 
-```cpp
+```
 if (state[SDL_SCANCODE_LCTRL]) {
     if (controllerRef.isHoldingDown && !controllerRef.isHoldingCtrl) {
         jumpDown();
@@ -44,7 +44,7 @@ if (state[SDL_SCANCODE_LCTRL]) {
 Next, the `jumpDown()` method. The goal here is, more precisely, to check
 whether we can jump down.
 
-```cpp
+```
 void Player::jumpDown() {
     if (!isOnGround) return;
 
