@@ -12,11 +12,10 @@ different than mine is and that's why this was so hard. At any rate, I'll
 detail as best I can what this had in store for me.
 
 It's worth noting I did some reading on the issue before attempting this.
-There's a great
-[article](http://higherorderfun.com/blog/2012/05/20/the-guide-to-implementing-2d-platformers/)
-about 2D platformer engines that described this
-particular problem very well, but again, it didn't capture what I struggled
-with.
+There's a [great
+article](http://higherorderfun.com/blog/2012/05/20/the-guide-to-implementing-2d-platformers/)
+about 2D platformer engines that described this particular problem very well,
+but again, it didn't capture what I struggled with.
 
 ### The Problem
 
@@ -29,6 +28,7 @@ player with it.
 
 This doesn't sound too hard. As usual, I expected things to be harder than it
 sounded, but only so much. I broke this problem into a few pieces:
+
 1) Treat the platform like the floor. No movement, and get collision working
 2) Add movement to the platform
 3) Move the player with the platform
@@ -43,6 +43,7 @@ platform's velocity in each direction. That's trivial!
 Actually, all of that was trivial. The hard part was the collision detection. I
 quickly found out there are two main problems here, and their solutions like to
 combat each other:
+
 - The "initial" collision detection. For example, the player is falling and the platform is moving up. Detect when they collide.
 - The continuous position updates based on the colliding platform.
 
@@ -87,6 +88,7 @@ with debugging this for hours before taking a few days off.
 ### What Actually Worked?
 
 I started over. This was my new thought process:
+
 1) Check if the player is standing on the platform (that is, top of platform ==
 bottom of player) *before* the platform's position is updated. If so, store
 the platform's handle.
@@ -109,6 +111,7 @@ any rate, a small bug fix later and it worked a lot better. I think the new
 implementation made debugging a lot easier.
 
 I faced a few smaller bugs after that, such as:
+
 - Player can't jump while on platform
 - Player jumps for one frame then gets pulled down to the platform
 - Uneven, bouncy ride on the platform
