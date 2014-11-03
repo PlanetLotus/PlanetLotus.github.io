@@ -37,8 +37,8 @@ int tileRow = nextKeenTop / TILE_HEIGHT;
 int tileCol = nextKeenRight / TILE_WIDTH;
 
 Tile* tile = tilesRef[tileCol][tileRow];
-    if (tile == NULL || !tile->getIsEdge())
-return;
+if (tile == NULL || !tile->getIsEdge())
+    return;
 {% endhighlight %}
 
 Later, though, I realized I did have to do some looping because checking Keen's
