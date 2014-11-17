@@ -1,0 +1,46 @@
+---
+layout: post
+title:  "Creating the First Level"
+---
+Up until a couple weeks ago I had only created bits and pieces of levels that
+don't resemble the actual game's levels, just as a way of testing the various
+features I had implemented. Now I'm at a point where most of those features are
+implemented, and the next step forward is to trust my level editor and create
+the first level.
+
+I was pretty happy with the result. It took probably 5 hours to get it mostly
+done. Since then it's been a matter of finding a missing tile here and there,
+and fixing bugs in the game I've noticed because of the level.
+
+### The Level Editor
+
+I hurriedly wrote a [level
+editor](https://github.com/PlanetLotus/PlatformerLevelDesigner) using WPF to
+support my game. It was odd to write a program to assist writing a program for
+myself, even though it happens in the "real world" all the time. As I stated in
+the readme, the code is crap. I didn't spend hardly any time designing the
+thing, and the requirements grew a lot larger than I initially anticipated (as
+is common in development). Since the point of writing it was to save
+time, I didn't want to spend a whole lot of time in it. Plus, I don't enjoy it
+and thought of it as a distraction from the game itself. Still, it was necessary.
+
+Now that I've built a full level with it, I can still say I'm pretty happy with
+the reliability and functionality of the level editor, even though it could
+definitely be more featureful. The worst part is probably having to place each
+tile by hand, instead of being able to place a whole row of 30 tiles that are
+exactly the same or something like that. Still, I didn't feel it was worth the
+time investment.
+
+<img src="../_images/level_editor.png">
+
+There are three important pieces to the editor. On the left is a sprite sheet
+filled with tiles to choose from. My editor takes a file as input and splits it
+up into tiles of a size you specify (in this case, 32x32 pixels). In the middle
+is the level itself, of a size you specify, and filled with tiles you place
+onto it. On the right there are controls to set properties of the currently
+selected tile, such as collision, slope height, pole and edge booleans, and
+what layer the tile should be on. When the level is saved, the grid is
+converted into a text where one line represents one placed tile with the
+location in the sprite sheet and the properties from the right.
+
+<img src="../_images/level_text.png">
