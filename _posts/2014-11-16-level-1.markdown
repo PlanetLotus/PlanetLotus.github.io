@@ -12,6 +12,12 @@ I was pretty happy with the result. It took probably 5 hours to get it mostly
 done. Since then it's been a matter of finding a missing tile here and there,
 and fixing bugs in the game I've noticed because of the level.
 
+It's worth noting that when I say "creating the level", for now I just mean the
+static tiles. This means no backgrounds, no items, no enemies, etc. It's pretty
+bare, and it gives you a sense of appreciation for what all goes into just one
+level. Thankfully it is an iterative process and additional levels wouldn't, in
+theory, require much more effort to add.
+
 ### The Level Editor
 
 I hurriedly wrote a [level
@@ -44,3 +50,52 @@ converted into a text where one line represents one placed tile with the
 location in the sprite sheet and the properties from the right.
 
 ![]({{ site.url }}/images/level_text.png)
+
+### The Level
+
+Unfortunately I can't show off everything the level has to offer at the moment,
+because there are bugs (surprise!). This was most noticeable in
+the sloped tiles. I wrote the functionality for those in August
+and have avoided them since, so I haven't been testing them as
+I've been going. As a result of building the level, I found some
+conflicting collision detection functionality between sloped
+tiles and one-way platforms. I have not solved this yet, so
+either one must be broken at all times. For the sake of the video
+demo, I've kept the functionality that allows for slopes to
+work and breaks the one-way platforms.
+
+<iframe width="560" height="315" src="//www.youtube.com/embed/k389fdAHmAw" frameborder="0" allowfullscreen></iframe>
+
+In addition to the slope bugs, building the level exposed a lot of things that
+need adjusting. Maybe the most noticeable to me is that Keen moves a lot slower
+than he should. I knew this already but the level draws this out a lot more and
+will help me make better judgments in the future with the "real" level to
+compare to. There's also an interesting pole climbing bug. There's one spot on
+the level where two poles are close to each other. Sometimes Keen will teleport
+from one pole to the other as he's climbing down. This is because, as he moves
+up or down a pole, it's constantly making sure he's still on a pole otherwise
+it'll boot him off. Sometimes it finds the other pole instead and pushes him
+onto it.
+
+The most work I've put into it after building the level is the slopes. I still
+had to adjust the slope height for the steeper slopes. I put a couple hours
+into that last weekend and, as you can tell, it's still far from perfect. For
+slopes that go up and to the right, it's very difficult to get Keen to appear
+high enough on the tile. For the slopes going the other way, it's not nearly as
+difficult due to the perspective difference. It may require reimplementing
+slopes from scratch with a different algorithm, but for now I'm considering it
+good enough.
+
+### Next Steps
+
+Before I try fixing the collision bugs mentioned earlier, I'm going to work on
+some long-standing, somewhat related collision bugs. These may (or may not)
+drastically affect collision and I want to see how it changes things first.
+After that I can try the collision bugs again.
+
+After I'm done with collision, there's still a lot to do and I have that
+documented in
+[DEV.md](https://github.com/PlanetLotus/keen5-linux/blob/master/DEV.md).
+Namely, I'm thinking of working on things like adding backgrounds and units to
+the level. This will take considerable work on the level editor first because
+at the moment it only knows what to do with static tiles. More to come!
