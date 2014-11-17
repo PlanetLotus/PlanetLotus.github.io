@@ -31,7 +31,7 @@ tile by hand, instead of being able to place a whole row of 30 tiles that are
 exactly the same or something like that. Still, I didn't feel it was worth the
 time investment.
 
-<img src="../_images/level_editor.png">
+![]({{ site.url }}/images/level_editor.png)
 
 There are three important pieces to the editor. On the left is a sprite sheet
 filled with tiles to choose from. My editor takes a file as input and splits it
@@ -43,4 +43,4 @@ what layer the tile should be on. When the level is saved, the grid is
 converted into a text where one line represents one placed tile with the
 location in the sprite sheet and the properties from the right.
 
-<img src="../_images/level_text.png">
+![]({{ site.url }}/images/level_text.png)
