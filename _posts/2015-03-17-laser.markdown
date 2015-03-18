@@ -1,0 +1,47 @@
+---
+layout: post
+title:  "Stationary Laser Gun"
+---
+
+### New Classes
+
+I had more fun with class hierarchy with this one. Not surprisingly, the
+player's laser gun and this enemy laser gun are pretty similar in
+functionality. In addition to being moving animated sprites, they also destroy
+themselves on collision with anything. The main differences are who they harm
+and the frames they use (really just color!). I added a Laser class and then
+made BlasterShot (Keen's laser) and EnemyLaser inherit from Laser.
+
+### EnemyLaserManager
+
+The more interesting concept was figuring out how best to have multiple
+stationary lasers in a level and have them spawn every x seconds. Keep in mind
+the gun itself has nothing to do with this; it's just for show. The laser,
+however, needs to spawn at some location periodically and travel in a
+certain direction, and see if it hit Keen.
+
+I created an EnemyLaserManager class that keeps a list of lasers that are
+present in the level. These lasers are read in from the level data. For now it
+assumes that the laser shoots downward, but this would need work in future
+levels (I could add this to the level data). On each game loop,
+EnemyLaserManager's update() method is called to see if the shot
+cooldown has expired and, if so, spawns another laser at each location.
+For now all lasers spawn at the same time. Some levels might rely on
+there being a delay between some lasers so that the player can run
+underneath, but I'm not sure that exists.
+
+### Multiple Sprite Sheets
+
+An issue I quickly ran into is that the player's laser sprite is on a different
+sprite sheet than the enemy laser sprite. The fact that there are two sprite
+sheets is a flaw in itself, but it's a bit late for fixing that to be practical
+(it's an annoyance, not a performance concern obviously). Since I batch all
+lasers together in a Laser vector, their draw() method can only take one
+texture but a different one is needed for BlasterShot and EnemyLaser. I fixed
+this by storing a pointer to the texture in the class and not using the texture
+passed into the draw() method. A long-term goal is to make this the case for
+all calls to all draw() methods. I think this will result in cleaner code and
+more customizability, granted it wouldn't be a problem at all if everything was
+on one sprite sheet.
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/TmyH-HvRvh0" frameborder="0" allowfullscreen></iframe>
