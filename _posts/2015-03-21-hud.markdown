@@ -40,7 +40,7 @@ When I mentioned calculating what the HUD should look like earlier, this is
 what I was talking about. I had to write a method that takes a value, say a
 score, and chop it up digit-by-digit and show the corresponding image for that
 digit on the HUD. This brought me back to some first-quarter Computer Science
-stuff where I had to process each digit in a larger number at a time. To get
+stuff where I had to process each digit in a larger number. To get
 the least-significant digit, just take the value and mod it by 10. Then, to
 look at the next digit, divide the value by 10 to chop off the digit you just
 looked at.
