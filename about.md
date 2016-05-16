@@ -4,19 +4,12 @@ title: About
 permalink: /about/
 ---
 
-### Introducing My Commander Keen 5 Clone
+### My Commander Keen 5 Learning Experience
 
-I have a project under active development. As noted in its
-[repo](https://github.com/PlanetLotus/keen5-linux), the main goals of this
-project are to practice C++ and OOP (and have fun doing it). Provided it
-doesn't take away from development time too much, I'd like to start blogging
-about my progress. I found a nifty screen capture program called
-[recordMyDesktop](http://sourceforge.net/projects/recordmydesktop/) which gave
-me some hope that this isn't too painful to accomplish.
-
-Given that I'm already ~9 months into development as of the time of this
-writing, a lot of awesome development, bugs, and learning has gone undocumented
-except in the form of commits. I'm hoping to address the highlights of each
-feature with a short demo clip and short blog post.
-
-![](http://upload.wikimedia.org/wikipedia/en/8/88/Commander_Keen_in_Goodbye_Galaxy_title_screen.png)
+This project is no longer under active development. I spent about a year on it
+in my spare time fairly consistently, occasionally taking a few weeks off. I
+decided to stop when I ran into significant diminishing returns with my
+learning. I ended with a fairly complete first level (minus sound and music).
+Next would've been save/load features and more levels, but the only thing I was
+really looking forward to with more levels is adding more enemy types. I ended
+up moving on to other projects.
