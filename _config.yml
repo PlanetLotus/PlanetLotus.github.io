@@ -13,3 +13,11 @@ markdown: kramdown
 syntax-highlighting:
     enabled: true
     css: syntax.css
+
+defaults:
+    -
+        scope:
+            path: ""
+            type: "posts"
+        values:
+            comments: true
