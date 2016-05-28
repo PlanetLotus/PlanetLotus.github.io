@@ -1,6 +1,7 @@
 ---
 layout: post
 title:  "Making the Physics Framerate-Independent"
+description: "Refactoring the physics engine to work the same regardless of the preferred framerate."
 ---
 Since my last post I've added the concept of an item to the game and so now
 collision with items works, but I admit a bit of laziness on my part has

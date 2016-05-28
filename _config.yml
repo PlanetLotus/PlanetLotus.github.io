@@ -21,3 +21,6 @@ defaults:
             type: "posts"
         values:
             comments: true
+
+gems:
+    - jekyll-seo-tag

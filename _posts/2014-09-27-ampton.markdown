@@ -1,6 +1,7 @@
 ---
 layout: post
 title:  "Ampton"
+description: "Video demo of Ampton, the second NPC in Commander Keen 5."
 ---
 Ampton is mostly done. I didn't bother implementing the "fix machine" state
 right now since it's mostly visual and the machine isn't on the spritesheet

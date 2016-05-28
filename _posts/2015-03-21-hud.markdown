@@ -1,6 +1,7 @@
 ---
 layout: post
 title:  "Stats & HUD"
+description: "Creating a HUD and stats menu."
 ---
 
 Here is the relevant [commit

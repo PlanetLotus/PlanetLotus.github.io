@@ -1,6 +1,7 @@
 ---
 layout: post
 title:  "Moving Platforms"
+description: "Creating moving platforms in Commander Keen 5."
 ---
 Moving platforms have been the hardest single feature to implement so far. It
 was also much harder than I expected it to be. I think some other things were

@@ -1,6 +1,7 @@
 ---
 layout: post
 title:  "Layers AKA Pain"
+description: "How I overhauled my level editor and sprite sheet to respect layers."
 ---
 A few posts ago I mentioned how I probably won't get around to filling in the
 empty black spaces that you see all over the place. To recap, these black spots

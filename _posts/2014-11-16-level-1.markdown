@@ -1,6 +1,7 @@
 ---
 layout: post
 title:  "Creating the First Level"
+description: "Creating Ion Ventilation System with a custom level editor."
 ---
 Up until a couple weeks ago I had only created bits and pieces of levels that
 don't resemble the actual game's levels, just as a way of testing the various

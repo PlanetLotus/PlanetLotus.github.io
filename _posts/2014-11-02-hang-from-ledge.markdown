@@ -1,6 +1,7 @@
 ---
 layout: post
 title:  "Hanging From Ledges"
+description: "Hanging from ledges, a distinctive feature of Commander Keen 5."
 ---
 I thought this would be one of the hardest features to implement and it didn't
 end up being nearly that hard. It took a day to fully implement with a few left
