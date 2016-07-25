@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "Why I decided to ditch AutoMapper"
+title: "Why I Decided to Ditch AutoMapper"
 description: "Mapping objects is painful. AutoMapper makes many aspects of mapping less painful, but is the cost worth it?"
 ---
 
