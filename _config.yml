@@ -2,7 +2,7 @@
 title: PlanetLotus
 email:
 description: > # this means to ignore newlines until "baseurl:"
-    A tech blog for game development, including Commander Keen 5, C++, and SDL.
+    Side project ramblings, lessons learned, and ravings about awesome software.
 baseurl: "" # the subpath of your site, e.g. /blog/
 #url: "http://yourdomain.com" # the base hostname & protocol for your site
 twitter_username:
