@@ -1,0 +1,20 @@
+---
+layout: default
+title: Tags
+---
+
+<h1>Posts by Tag</h1>
+
+{% for tag in site.tags %}
+<p>{{ tag[0] }}</p>
+<ul class="no-bullets">
+    {% for post in tag[1] %}
+    <li>
+        <a href="{{ site.baseurl }}{{ post.url }}">
+            {{ post.title }}
+        </a>
+        <span class="post-meta">{{ post.date | date_to_string }}</span>
+    </li>
+    {% endfor %}
+</ul>
+{% endfor %}

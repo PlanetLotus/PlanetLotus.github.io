@@ -2,6 +2,7 @@
 layout: post
 title: "How ReSharper's Solution-Wide Analysis Exposes Bugs"
 description: "My favorite 9-5 discovery of the last few months."
+tags: [work]
 ---
 
 ### ReSharper's Solution-Wide Analysis

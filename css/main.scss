@@ -47,3 +47,21 @@ $on-laptop:        800px;
         "layout",
         "syntax-highlighting"
 ;
+
+
+// Manually added
+.no-bullets {
+    list-style: none;
+}
+
+.left {
+    float: left;
+}
+
+.right {
+    float: right;
+}
+
+.clear {
+    clear: both;
+}
