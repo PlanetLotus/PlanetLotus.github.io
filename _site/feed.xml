@@ -1,0 +1,918 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>PlanetLotus</title>
+    <description>Side project ramblings, lessons learned, and ravings about awesome software.
+</description>
+    <link>/</link>
+    <atom:link href="/feed.xml" rel="self" type="application/rss+xml" />
+    <pubDate>Sun, 28 Aug 2016 16:43:58 -0700</pubDate>
+    <lastBuildDate>Sun, 28 Aug 2016 16:43:58 -0700</lastBuildDate>
+    <generator>Jekyll v3.1.6</generator>
+    
+      <item>
+        <title>How ReSharper&#39;s Solution-Wide Analysis Exposes Bugs</title>
+        <description>&lt;h3 id=&quot;resharpers-solution-wide-analysis&quot;&gt;ReSharper’s Solution-Wide Analysis&lt;/h3&gt;
+
+&lt;p&gt;I’ve used ReSharper at work for a few years now and I only just recently
+discovered the &lt;a href=&quot;https://www.jetbrains.com/help/resharper/2016.1/Code_Analysis__Solution-Wide_Analysis.html&quot;&gt;Solution-Wide
+Analysis&lt;/a&gt;
+tool.&lt;/p&gt;
+
+&lt;p&gt;Usually you can find me turning off as many features as possible so that I’m
+not slowing down the tooling, but I’ve found it very helpful to at least
+temporarily turn this tool on. Thankfully it’s easy to toggle.&lt;/p&gt;
+
+&lt;p&gt;Since you can see its purpose at the link above, I’ll just quickly go over my
+main use case.&lt;/p&gt;
+
+&lt;h3 id=&quot;identifying-unused-public-properties&quot;&gt;Identifying Unused Public Properties&lt;/h3&gt;
+
+&lt;p&gt;At work, I have classes with hundreds of public properties that are all mapped
+to another class’s properties. In order to verify that I haven’t forgotten to
+map any, I can simply enable Solution-Wide Analysis and it’ll tell me if any of
+the public properties are unused. This helped me identify some properties I
+added and didn’t need, others that should’ve been mapped and weren’t, and
+others that were incorrectly mapped! Three types of bugs solved immediately.&lt;/p&gt;
+
+&lt;p&gt;Without this tool, I would’ve had to Find Usages on each property manually.
+This might be fine once, but as code changes and I need to check again, it
+doesn’t really work. At first, it doesn’t sound too amazing to be able to see
+unused public properties (it just sounds like cleanup), but in my case it
+actually identifies bugs.&lt;/p&gt;
+</description>
+        <pubDate>Sun, 24 Jul 2016 00:00:00 -0700</pubDate>
+        <link>/2016/07/24/solution-wide-analysis.html</link>
+        <guid isPermaLink="true">/2016/07/24/solution-wide-analysis.html</guid>
+        
+        <category>work</category>
+        
+        
+      </item>
+    
+      <item>
+        <title>Why I Decided to Ditch AutoMapper</title>
+        <description>&lt;h3 id=&quot;background&quot;&gt;Background&lt;/h3&gt;
+
+&lt;p&gt;First off, I have no desire to bash a free tool that does its job very well.
+Some people love AutoMapper. I really think some devs will love what it has to
+offer and others won’t. For what it sets out to do, it does a great job, and
+since I haven’t filed any bugs or feature requests with it, it wouldn’t be fair
+for me to publicly bash it for what it’s supposed to do. Keep that in mind for
+the remainder of the post. I appreciate all the work that’s gone into it.&lt;/p&gt;
+
+&lt;p&gt;That said, I started using AutoMapper because a coworker wanted to. After
+investing several hours into using it over several months, I’m ready to report
+why I choose to write new code without AutoMapper, and why I wouldn’t want to
+work on a team that insisted on using AutoMapper.&lt;/p&gt;
+
+&lt;p&gt;It’s worth noting that I use AutoMapper in an MVC project, so all of my
+examples will be based in an MVC project.&lt;/p&gt;
+
+&lt;h3 id=&quot;what-automapper-does&quot;&gt;What AutoMapper Does&lt;/h3&gt;
+
+&lt;p&gt;AutoMapper is a .NET tool that seeks to make mapping objects between formats
+less tedious and less time consuming without sacrificing performance. As any
+MVC developer will tell you, mapping objects from database, to business layer,
+to view is really tedious and seems like a huge waste of time.&lt;/p&gt;
+
+&lt;p&gt;What AutoMapper is very good at is mapping two objects without any
+customization. If &lt;code class=&quot;highlighter-rouge&quot;&gt;DbFoo&lt;/code&gt; (database object) and &lt;code class=&quot;highlighter-rouge&quot;&gt;Foo&lt;/code&gt; (business object) have
+exactly the same properties on them but are “duplicated” (not really duplicate,
+but seems that way) to maintain separation of layers, then using
+AutoMapper is a huge win.&lt;/p&gt;
+
+&lt;p&gt;Let’s say the classes look like this:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-csharp&quot; data-lang=&quot;csharp&quot;&gt;&lt;span class=&quot;c1&quot;&gt;// The class representing the db table
+&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;DbUser&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;UserId&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;get&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;set&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;string&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;UserName&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;get&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;set&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;string&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Email&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;get&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;set&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;c1&quot;&gt;// The &quot;business logic&quot; class
+&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;User&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;UserId&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;get&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;set&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;string&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;UserName&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;get&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;set&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;string&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Email&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;get&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;set&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;In this case, mapping with AutoMapper just looks like this:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-csharp&quot; data-lang=&quot;csharp&quot;&gt;&lt;span class=&quot;n&quot;&gt;Mapper&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;CreateMap&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;DbUser&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;User&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;gt;();&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;Whereas without AutoMapper you’d have something like this:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-csharp&quot; data-lang=&quot;csharp&quot;&gt;&lt;span class=&quot;k&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;static&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;User&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;MapUser&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;DbUser&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;user&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;User&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;UserId&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;user&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;UserId&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;UserName&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;user&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;UserName&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;Email&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;user&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Email&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;};&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;If all of my models matched the other layers this directly, I’d probably use
+AutoMapper.  Unfortunately a non-trivial app is unlikely to be this
+straightforward, which in my opinion, is where AutoMapper &lt;em&gt;can&lt;/em&gt; work, but
+starts losing its value.&lt;/p&gt;
+
+&lt;h3 id=&quot;problem-1-losing-compile-time-safety&quot;&gt;Problem 1: Losing Compile-time Safety&lt;/h3&gt;
+
+&lt;p&gt;One of my biggest gripes with AutoMapper is that it takes a strongly-typed
+language (C#) and makes all mappings computed at runtime. In other words, you
+don’t know if your mappings work until you run them. This is a problem even in
+the simple case mentioned above. Let’s say a particularly picky developer
+decided to rename the &lt;code class=&quot;highlighter-rouge&quot;&gt;Email&lt;/code&gt; column on the &lt;code class=&quot;highlighter-rouge&quot;&gt;DbUser&lt;/code&gt; class to &lt;code class=&quot;highlighter-rouge&quot;&gt;EmailAddress&lt;/code&gt;,
+but either forgets or can’t update the &lt;code class=&quot;highlighter-rouge&quot;&gt;User&lt;/code&gt; object due to its
+numerous uses. Now your AutoMapper mapping just broke but you have no
+idea. Not only will it not tell you at compile time, but this sort of
+change will silently fail. The property that doesn’t map will simply be
+ignored. As far as I’m aware, this is by design.&lt;/p&gt;
+
+&lt;p&gt;Compare to the manual mapper and simply building will reveal this bug.&lt;/p&gt;
+
+&lt;h3 id=&quot;problem-2-no-static-analysis&quot;&gt;Problem 2: No Static Analysis&lt;/h3&gt;
+
+&lt;p&gt;I use Visual Studio’s and ReSharper’s static analysis tools frequently, such as
+Find Usages. While refactoring, I need to make sure all uses of something were
+updated correctly. If I make a change like in the last example but I’m using
+AutoMapper, it’s now a lot harder to exhaustively find all uses of a class or
+one of its properties. I’ve found this not only leads to bugs, but also extra
+mappers that should be deleted but no one is confident enough that they can be
+safely removed. The problem is, the only way you can test an AutoMapper mapping
+is by hitting each use of it at runtime which usually isn’t practical in a
+large codebase.&lt;/p&gt;
+
+&lt;h3 id=&quot;problem-3-debugging&quot;&gt;Problem 3: Debugging&lt;/h3&gt;
+
+&lt;p&gt;There’s probably better debugging methods than what I’ve done in the past, but
+after using AutoMapper for several months I have spent cumulative &lt;em&gt;hours&lt;/em&gt;
+debugging mappings that don’t work. These were usually very simple bugs that
+were rather embarrassing, but the bottom line is that it would’ve been caught
+at compile time if it were a manual mapper. This of course assumes that I
+actually know there’s a bug and the code isn’t suffering from Problem 1 above.&lt;/p&gt;
+
+&lt;h3 id=&quot;problem-4-customization--lots-of-syntax&quot;&gt;Problem 4: Customization = Lots of Syntax&lt;/h3&gt;
+
+&lt;p&gt;AutoMapper can handle more complex mappings, but this comes at a cost of either
+writing these mappings in lambda expressions, or factoring them out into custom
+mappers. The former works for awhile, but if your logic isn’t incredibly
+straightforward then the expression will become very difficult to read. The
+latter I haven’t personally explored, because I feel that if I have to add that
+much code for an AutoMapper mapping, then I’ve completely defeated the point
+and should just write a regular mapper method.&lt;/p&gt;
+
+&lt;h3 id=&quot;problem-5-only-11-mappings-supported&quot;&gt;Problem 5: Only 1:1 Mappings Supported&lt;/h3&gt;
+
+&lt;p&gt;As far as I know, a mapping can only take one object and spit out a result. It
+can’t map two objects into a third object. I run into this case pretty
+frequently. Here’s an example when querying two different data sources:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-csharp&quot; data-lang=&quot;csharp&quot;&gt;&lt;span class=&quot;n&quot;&gt;FooApiDto&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;fooApiDto&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;await&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;fooApiService&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;GetFooApiDto&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;();&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;FooApiDto2&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;fooApiDto2&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;await&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;fooApiService2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;GetFooApiDto2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;();&lt;/span&gt;
+
+&lt;span class=&quot;c1&quot;&gt;// Can&#39;t do this; wish I could
+&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Foo&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;foo&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Mapper&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Map&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Foo&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;fooApiDto&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;fooApiDto2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;Another common example is while taking in form input:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-csharp&quot; data-lang=&quot;csharp&quot;&gt;&lt;span class=&quot;k&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;async&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Task&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ActionResult&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;Index&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;FooProfile&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;fooProfile&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;kt&quot;&gt;string&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;userId&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;this&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;User&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Identity&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;GetUserId&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;();&lt;/span&gt;
+
+    &lt;span class=&quot;c1&quot;&gt;// Can&#39;t do this :(
+&lt;/span&gt;    &lt;span class=&quot;n&quot;&gt;FooUserDto&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Mapper&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Map&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;FooUserDto&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;userId&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;fooProfile&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;h3 id=&quot;alternative&quot;&gt;Alternative?&lt;/h3&gt;
+
+&lt;p&gt;I think mapping between object formats is the most tedious part of
+programming (in MVC anyway) when it comes to adding features or refactoring and
+it seems like such a waste of time. I’ve yet to find a viable alternative to
+writing manual mappers as shown above, but this seems like the simplest and
+least error prone method, even if it does add a ton of code and possibly
+require more time up front. It really doesn’t take long to write mappers and I
+like not running into mapper bugs. That said, it does feel pretty lame to write
+&lt;code class=&quot;highlighter-rouge&quot;&gt;UserId = user.UserId&lt;/code&gt;…it just seems so obvious that a computer should be
+able to do it for me. But that’s AutoMapper, and I don’t think the advantages
+are worth the disadvantages it brings.&lt;/p&gt;
+
+&lt;p&gt;If you’ve solved this problem a different way, please let me know in the
+comments below. There’s got to be a million dollar bounty on that one.&lt;/p&gt;
+</description>
+        <pubDate>Thu, 16 Jun 2016 00:00:00 -0700</pubDate>
+        <link>/2016/06/16/automapper.html</link>
+        <guid isPermaLink="true">/2016/06/16/automapper.html</guid>
+        
+        <category>work</category>
+        
+        
+      </item>
+    
+      <item>
+        <title>DynamoDB Global Secondary Index</title>
+        <description>&lt;h3 id=&quot;the-problem&quot;&gt;The Problem&lt;/h3&gt;
+
+&lt;p&gt;We regularly need a reasonably accurate list of all of our partition keys for a
+couple purposes. One, we compare them against another database that we don’t
+control and want to make sure we remove any that they remove. Two, we like to
+run “integrity checks” to make sure we have everything we think we have, and
+for reporting purposes.&lt;/p&gt;
+
+&lt;p&gt;In our case, we want to fetch items by &lt;code class=&quot;highlighter-rouge&quot;&gt;FooGroupId1&lt;/code&gt;. Right now we have roughly
+1.5 million items and 8 unique values for &lt;code class=&quot;highlighter-rouge&quot;&gt;FooGroupId1&lt;/code&gt;. That’s an average of
+187,500 items per value. In a SQL database this really isn’t a problem, but we
+recognize that fetching large sets of rows (especially sequentially) isn’t one
+of DynamoDB’s strengths. So, we looked into GSIs…&lt;/p&gt;
+
+&lt;h3 id=&quot;global-secondary-indexes&quot;&gt;Global Secondary Indexes&lt;/h3&gt;
+
+&lt;p&gt;Indices? Ugh, grammar and technology don’t get along. AWS’s documentation says
+“Indexes” so I’ll go with that!&lt;/p&gt;
+
+&lt;p&gt;There’s a reason this is my second post about DynamoDB. A GSI’s partition key
+can only be on a root-level property, so that’s something to watch out for as
+needs change. After &lt;a href=&quot;/2016/05/28/dynamodb-migration.html&quot;&gt;migrating&lt;/a&gt; our
+document to put &lt;code class=&quot;highlighter-rouge&quot;&gt;FooGroupId1&lt;/code&gt; on the root level, we were ready to create a GSI.&lt;/p&gt;
+
+&lt;p&gt;We care about three properties when doing this kind of query:&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;FooPartitionKey&lt;/code&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;FooGroupId1&lt;/code&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;FooGroupId2&lt;/code&gt;&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;What we’re really after is an exhaustive list of &lt;code class=&quot;highlighter-rouge&quot;&gt;FooPartitionKey&lt;/code&gt;, but having
+the other properties is helpful too. We could just scan the table, but scanning
+observes the entire document (in our case, an average of 3.5 KB or so) which is
+expensive. Further, in our case, it’s helpful to additionally partition by
+&lt;code class=&quot;highlighter-rouge&quot;&gt;FooGroupId1&lt;/code&gt; so we’re not grabbing the whole table every time.&lt;/p&gt;
+
+&lt;p&gt;Creating the GSI is easy enough through AWS’s interface.&lt;/p&gt;
+
+&lt;h3 id=&quot;gotcha&quot;&gt;Gotcha&lt;/h3&gt;
+
+&lt;p&gt;Yeah, so…it turns out, &lt;code class=&quot;highlighter-rouge&quot;&gt;FooPartitionKey&lt;/code&gt; is automatically included in the
+index. So when I first created the GSI, it had the following properties:
+&lt;code class=&quot;highlighter-rouge&quot;&gt;FooPartitionKey&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;FooGroupId1&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;FooPartitionKey&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;FooGroupId2&lt;/code&gt;. Seriously?!
+I suppose this is the downside of a schema-less document.&lt;/p&gt;
+
+&lt;p&gt;It gets better. You can’t cancel the creation of an index! I had the pleasure
+of waiting for this to finish at 400 Write Capacity Units. It took about 90
+minutes. Then, I got to delete the index and do the same thing over again
+without manually including &lt;code class=&quot;highlighter-rouge&quot;&gt;FooPartitionKey&lt;/code&gt;. Jeez, that was unintuitive.
+Hopefully someone can avoid that mistake because of this post.&lt;/p&gt;
+
+&lt;h3 id=&quot;finally&quot;&gt;Finally!&lt;/h3&gt;
+
+&lt;p&gt;After nearly 3 hours of twiddling my thumbs, the correct index was finally
+created. Now the fun begins: Measuring performance!&lt;/p&gt;
+
+&lt;p&gt;I’ll spoil this early. I am pleasantly surprised with the performance of our
+GSI. We’re not at scale yet, but 1.5 million items is enough to notice
+performance degradation without a GSI. Hopefully it’ll continue to scale under
+this model.&lt;/p&gt;
+
+&lt;p&gt;In production right now I have our GSI set to only 10 RCU and 7 WCU (this is
+fewer WCU than our table, and the same RCU) and no throttling has
+occurred. The reads from our GSI happen about 8 times per day at roughly the
+same time, so I would qualify this as “burst read activity” (we will change
+this so it’s spread more evenly later). The writes happen in small
+bursts every hour. Needless to say, I’m both surprised and impressed. I believe
+and hope that it will scale. I expect the average number of items per
+&lt;code class=&quot;highlighter-rouge&quot;&gt;FooGroupId1&lt;/code&gt; to stay roughly the same, but our item count is expect to grow at
+least into the tens of millions in the near future.&lt;/p&gt;
+</description>
+        <pubDate>Mon, 30 May 2016 00:00:00 -0700</pubDate>
+        <link>/2016/05/30/dynamodb-gsi.html</link>
+        <guid isPermaLink="true">/2016/05/30/dynamodb-gsi.html</guid>
+        
+        <category>work</category>
+        
+        
+      </item>
+    
+      <item>
+        <title>Performing a DynamoDB Migration</title>
+        <description>&lt;h3 id=&quot;first-some-background&quot;&gt;First, Some Background&lt;/h3&gt;
+
+&lt;p&gt;At the company I work for, my “area of ownership” is a chain of several backend
+programs that are designed to scale horizontally (more machines, not better
+hardware). A couple months ago I recommended we switch from using Azure
+DocumentDB as our primary data store to Amazon DynamoDB. The “why” of that
+could easily be another post, so for now we’ll stick with the fact that we’ve
+only recently started using DynamoDB and are still figuring out what its
+strengths and weaknesses are, and how well our model fits with it.&lt;/p&gt;
+
+&lt;p&gt;I soon found myself wanting to use a GSI (Global Secondary Index) to perform a
+quick lookup of a large set of data (the “how” and “why” of which should also
+be another post) and instantly ran into a limitation of DynamoDB: You
+can’t use a nested property as the partition key of an index. It has to be a
+root-level property. That means it’s time to change the document format (or
+what I’d call a “migration”) and update existing documents along the
+way.&lt;/p&gt;
+
+&lt;h3 id=&quot;now-the-challenges&quot;&gt;Now, the Challenges…&lt;/h3&gt;
+
+&lt;p&gt;My company is still young enough that our database isn’t huge yet. Our DynamoDB
+table currently has just over 1.5 million items, which is big enough to make me
+really think about the best way to migrate data, but not so large that it’s
+super expensive. Our data by its very nature will grow over time, and I expect
+we will have over 10 million items, maybe 50 million, within the next year or
+two. I would consider us “at scale” at 100 million, at which point it’ll still
+keep growing, but at a slower rate (I apologize for not being super clear about
+what we do at this point. I want to respect our company’s privacy until I get
+the OK to make more details public).&lt;/p&gt;
+
+&lt;p&gt;Because we’re planning for large growth, I wanted to do this the right way. At
+this stage, it’s not a big deal if this particular system has a day of downtime
+(it’s not user-facing) but at scale we wouldn’t want any downtime. With that in
+mind, I took the extra time to make this happen with no downtime and to devise
+a reusable strategy for future migrations. Why would I want this to be easy?!&lt;/p&gt;
+
+&lt;p&gt;“No downtime” in our system means that the migration will be running while
+another process is modifying our documents, so that means the code running in
+production must be aware of both the old and new document formats. This process
+runs once an hour and involves reading existing items, updating them, and
+adding new items.&lt;/p&gt;
+
+&lt;p&gt;While I was at it, I reassessed our document format. There were many things
+wrong with the format in addition to needing to move one property to the root
+level. I ended up fixing every problem I could think of so that I only had to
+migrate once (at least, until we discover more problems). This ended up being
+much more complicated than moving a field because several data types changed,
+requiring properties to be remapped.&lt;/p&gt;
+
+&lt;h3 id=&quot;the-plan&quot;&gt;The Plan&lt;/h3&gt;
+
+&lt;p&gt;With the help of a coworker, we broke this down into these simple-ish steps:&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;Create a new DynamoDB table for the new format&lt;/li&gt;
+  &lt;li&gt;Make the production process do reads from the new table first, then if the item isn’t there yet, read from the old table&lt;/li&gt;
+  &lt;li&gt;Make the production process write only to the new table&lt;/li&gt;
+  &lt;li&gt;Make the migrator scan the old table, writing to the new table but only if that document doesn’t already exist in the new table&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;&lt;img src=&quot;/images/dynamodb-migration/steps.png&quot; alt=&quot;&quot; title=&quot;Now you see why I didn&#39;t go into graphic design. Next time I&#39;ll at least use something other than Paint.&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;The important thing to note here is that once the migration starts, the old
+table will never be written to again. It’ll only be read from if the document
+in question doesn’t already exist in the new table. Even if the migration fails
+midway through and has to be restarted, it will only write each document once.&lt;/p&gt;
+
+&lt;h3 id=&quot;running-the-migration&quot;&gt;Running the Migration&lt;/h3&gt;
+
+&lt;p&gt;Fast-forward several hours of code changes and testing, and I was ready to run
+the migration. I wrote a quick script to scan the old table, converting the
+documents to the new format and uploading to the new table if it wasn’t already
+there.&lt;/p&gt;
+
+&lt;p&gt;I wasn’t sure what Read Capacity Unit (RCU) and Write Capacity Unit (WCU)
+values to use. Honestly, I guessed, knowing I could increase the value as many
+times per day as I wanted. For our 1.5 million items totaling 5.1 GB, I picked
+100 RCU on the old table and 50 RCU, 400 WCU on the new table. I added a good
+amount of logging to the script, threw it on an EC2 instance, then let it rip.&lt;/p&gt;
+
+&lt;p&gt;I quickly confirmed that new documents being added looked the way I wanted to.
+The hours of testing paid off. This post ignores how much time was spent in C#
+creating a new format for an otherwise simple goal of moving a property to the
+root of a document, so while that’s where most of the effort went, it certainly
+wasn’t the interesting part of the migration.&lt;/p&gt;
+
+&lt;p&gt;I was impressed with the performance. With the resources I threw at it, I
+figured it would take about 6 hours to finish, which would put it at around
+10pm that day. Great idea, by the way, starting a lengthy process at 4pm…&lt;/p&gt;
+
+&lt;p&gt;The RCU and WCU values I chose seemed to be reasonable. I actually
+over-provisioned pretty much everywhere. Reads from the old table never went
+above 40, and I had it set at 100. Reads from the new table never went above 15
+or so and I had it at 50 (this was likely to burst though, so it was good to
+over-provision). Writes to the new table never went above 335 or so,
+and I had that set to 400.&lt;/p&gt;
+
+&lt;p&gt;One thing I’m still unsure of is how I’d squeeze more performance out of
+DynamoDB if I wanted it to go faster. Would I need to run my code on more
+machines? Would my reads/writes need to be more distributed, rather than
+sequential? This seems like a very low limit, so I’m sure there’s plenty more I
+could do to make it go faster. If you know, please leave a comment down below.&lt;/p&gt;
+
+&lt;h3 id=&quot;performance-degradation&quot;&gt;Performance Degradation&lt;/h3&gt;
+
+&lt;p&gt;I kept an eye on the logging throughout the night. I started to notice around
+9pm that things had started slowing down significantly, to the point where I
+was going to lose sleep making sure it finished. I spent about an hour looking
+at AWS’s wonderful metrics trying to figure out why throughput suddenly tanked
+to about 40% of where it was.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/images/dynamodb-migration/old-table-reads.png&quot; alt=&quot;&quot; title=&quot;Reads on the old table over time&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/images/dynamodb-migration/writes.png&quot; alt=&quot;&quot; title=&quot;Writes on the new table over time&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;I’m still not totally sure what went wrong, but I think it had something to do
+with my scanning of the old table. At some point, the scanning wasn’t returning
+results for every page, so my script had to keep querying DynamoDB trying to
+get more data, knowing that it wasn’t at the end of the table yet. I’m not sure
+what causes this. I tried bumping up the RCU and WCU values to no effect. Sadly
+no “lesson learned” here; I’ll just have to keep an eye on scanning behavior as
+the table grows. If you know what I may have missed, please let me know with a
+comment below.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/images/dynamodb-migration/scan-results.png&quot; alt=&quot;Table scan showing decreased result count over time&quot; title=&quot;Scan of the old table&quot; /&gt;&lt;/p&gt;
+
+&lt;h3 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h3&gt;
+
+&lt;p&gt;To my surprise, it’s been several days and I still haven’t found any bugs in
+the migration. The morning after the migration, I wrote a quick script to grab
+all of the IDs out of both the old and new tables, making sure no IDs were in
+the old table that weren’t in the new table. It’s nice to use a system that
+just works.&lt;/p&gt;
+</description>
+        <pubDate>Sat, 28 May 2016 00:00:00 -0700</pubDate>
+        <link>/2016/05/28/dynamodb-migration.html</link>
+        <guid isPermaLink="true">/2016/05/28/dynamodb-migration.html</guid>
+        
+        <category>work</category>
+        
+        
+      </item>
+    
+      <item>
+        <title>Stats &amp; HUD</title>
+        <description>&lt;p&gt;Here is the relevant &lt;a href=&quot;https://github.com/PlanetLotus/keen5-linux/compare/f31a60e827bee4797a3405b0c35213fc27279730...74f79ecc77bd100dbf85a3203a5d9cbaba53d090&quot;&gt;commit
+range&lt;/a&gt;
+for this feature.&lt;/p&gt;
+
+&lt;p&gt;I had a surprising amount of fun developing this feature.&lt;/p&gt;
+
+&lt;h3 id=&quot;statsmanager&quot;&gt;StatsManager&lt;/h3&gt;
+
+&lt;p&gt;StatsManager is the “backend”. It updates and returns values for the player’s
+score, number of lives, ammo, and vitalin. The idea is that other classes can
+have a reference to the single StatsManager. The “Player” class both reads from
+and updates the StatsManager. The “HUD” class just reads from it.&lt;/p&gt;
+
+&lt;p&gt;Something important is that StatsManager also keeps track of whether any given
+value has changed for any particular loop (these values are reset to false
+after the HUD reads from StatsManager). This helps avoid calculating
+what the HUD should look like when it hasn’t changed. Sadly, this doesn’t
+prevent any draw() calls because the entire screen is redrawn every frame.&lt;/p&gt;
+
+&lt;h3 id=&quot;hud&quot;&gt;HUD&lt;/h3&gt;
+
+&lt;p&gt;The HUD (“Heads-Up Display”) is the “frontend” responsible for showing the
+player what their score is, how many lives they have, and how much ammo they
+have.&lt;/p&gt;
+
+&lt;p&gt;What was particularly tricky about this feature is that I don’t have that
+font that the actual game uses for the numerical values in the HUD. To make up
+for this I took screenshots of each value (0-9, as well as a grayed-out 8) and
+put them in a few frames that the HUD then reads from. This is incredibly
+inefficient because now I’m adding a draw() call for every single digit in the
+HUD, but I wanted it to look like the actual game and this was kind of
+interesting.&lt;/p&gt;
+
+&lt;p&gt;When I mentioned calculating what the HUD should look like earlier, this is
+what I was talking about. I had to write a method that takes a value, say a
+score, and chop it up digit-by-digit and show the corresponding image for that
+digit on the HUD. This brought me back to some first-quarter Computer Science
+stuff where I had to process each digit in a larger number. To get
+the least-significant digit, just take the value and mod it by 10. Then, to
+look at the next digit, divide the value by 10 to chop off the digit you just
+looked at.&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-cpp&quot; data-lang=&quot;cpp&quot;&gt;&lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Hud&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;updateProperty&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;minClipIndex&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;maxClipIndex&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;clipIndex&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;maxClipIndex&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+    &lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;digits&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+    &lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;digit&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;bool&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;isDigitZeroAndMostSigificantDigit&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;false&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;bool&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;isValueZeroButNotDigit&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;false&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+
+    &lt;span class=&quot;k&quot;&gt;while&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;clipIndex&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;minClipIndex&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;digit&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;digits&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;%&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;10&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+
+        &lt;span class=&quot;n&quot;&gt;isDigitZeroAndMostSigificantDigit&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;digit&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;digits&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;/&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;10&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;isValueZeroButNotDigit&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;digit&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;!=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;||&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;clipIndex&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;!=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;maxClipIndex&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+
+        &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;isDigitZeroAndMostSigificantDigit&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;isValueZeroButNotDigit&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;valueSrcClips&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;clipIndex&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;grayEightClip&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+        &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;else&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;valueSrcClips&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;clipIndex&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;clipsByDigit&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;digit&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+        &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+        &lt;span class=&quot;n&quot;&gt;digits&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;/=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;10&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;clipIndex&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;--&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;The draw code was kind of complex too. I made sure to add a ton of const ints
+in the header file to make it very clear what each value represents. The draw
+code involves lots of offsets for positioning both the HUD background as well
+as the 13(!!!) individual digits that go on top of it.&lt;/p&gt;
+
+&lt;h3 id=&quot;virtualbox&quot;&gt;VirtualBox&lt;/h3&gt;
+
+&lt;p&gt;Speaking of the draw code, I noticed (yes, actually noticed) a performance drop
+when I added all of these draw calls. I was pretty certain that my game wasn’t
+doing enough to really cause such a slowdown, and that my computer is plenty
+powerful enough to handle this. I’ve long suspected VirtualBox (Running Lubuntu
+14.04) slows down my game noticeably, and while developing this feature
+I looked into it in more detail.&lt;/p&gt;
+
+&lt;p&gt;The first thing I did was pop open the task manager and noticed the game was
+using 35% of the guest CPU. That seemed unreasonable for such a small game. I
+went into VirtualBox and turned on 3D Acceleration. Now when I ran the game, I
+got a TON of OpenGL warnings, but the game did run. It also ran smoothly! Task
+manager showed 10% usage after this change. Very significant and a lot more
+reasonable. I attributed the rest not really to game code but just overhead in
+the virtual machine plus SDL overhead. Man, those OpenGL warnings were annoying
+though. I spent about an hour googling trying to fix this and confirmed that it
+is a bug in VirtualBox since Ubuntu 14.04. Not much I can do there.&lt;/p&gt;
+
+&lt;p&gt;I was content with leaving 3D Acceleration on, enjoying the better performance,
+and just ignoring the full page of OpenGL warnings until I went to record a
+demo video for this blog post. Turns out VirtualBox doesn’t like my recording
+software when 3D Acceleration is turned on, or vice versa. After turning it
+back off it works fine, but you may actually notice a tiny bit of framerate
+drop in my video because of that. I’m sorry, I know you pay a lot for these
+demos.&lt;/p&gt;
+
+&lt;iframe width=&quot;560&quot; height=&quot;315&quot; src=&quot;https://www.youtube.com/embed/uE-eSZFk9sk&quot; frameborder=&quot;0&quot; allowfullscreen=&quot;&quot;&gt;&lt;/iframe&gt;
+</description>
+        <pubDate>Sat, 21 Mar 2015 00:00:00 -0700</pubDate>
+        <link>/2015/03/21/hud.html</link>
+        <guid isPermaLink="true">/2015/03/21/hud.html</guid>
+        
+        <category>keen</category>
+        
+        
+      </item>
+    
+      <item>
+        <title>Stationary Laser Gun</title>
+        <description>&lt;h3 id=&quot;new-classes&quot;&gt;New Classes&lt;/h3&gt;
+
+&lt;p&gt;I had more fun with class hierarchy with this one. Not surprisingly, the
+player’s laser gun and this enemy laser gun are pretty similar in
+functionality. In addition to being moving animated sprites, they also destroy
+themselves on collision with anything. The main differences are who they harm
+and the frames they use (really just color!). I added a Laser class and then
+made BlasterShot (Keen’s laser) and EnemyLaser inherit from Laser.&lt;/p&gt;
+
+&lt;h3 id=&quot;enemylasermanager&quot;&gt;EnemyLaserManager&lt;/h3&gt;
+
+&lt;p&gt;The more interesting concept was figuring out how best to have multiple
+stationary lasers in a level and have them spawn every x seconds. Keep in mind
+the gun itself has nothing to do with this; it’s just for show. The laser,
+however, needs to spawn at some location periodically and travel in a
+certain direction, and see if it hit Keen.&lt;/p&gt;
+
+&lt;p&gt;I created an EnemyLaserManager class that keeps a list of lasers that are
+present in the level. These lasers are read in from the level data. For now it
+assumes that the laser shoots downward, but this would need work in future
+levels (I could add this to the level data). On each game loop,
+EnemyLaserManager’s update() method is called to see if the shot
+cooldown has expired and, if so, spawns another laser at each location.
+For now all lasers spawn at the same time. Some levels might rely on
+there being a delay between some lasers so that the player can run
+underneath, but I’m not sure that exists.&lt;/p&gt;
+
+&lt;h3 id=&quot;multiple-sprite-sheets&quot;&gt;Multiple Sprite Sheets&lt;/h3&gt;
+
+&lt;p&gt;An issue I quickly ran into is that the player’s laser sprite is on a different
+sprite sheet than the enemy laser sprite. The fact that there are two sprite
+sheets is a flaw in itself, but it’s a bit late for fixing that to be practical
+(it’s an annoyance, not a performance concern obviously). Since I batch all
+lasers together in a Laser vector, their draw() method can only take one
+texture but a different one is needed for BlasterShot and EnemyLaser. I fixed
+this by storing a pointer to the texture in the class and not using the texture
+passed into the draw() method. A long-term goal is to make this the case for
+all calls to all draw() methods. I think this will result in cleaner code and
+more customizability, granted it wouldn’t be a problem at all if everything was
+on one sprite sheet.&lt;/p&gt;
+
+&lt;iframe width=&quot;560&quot; height=&quot;315&quot; src=&quot;https://www.youtube.com/embed/TmyH-HvRvh0&quot; frameborder=&quot;0&quot; allowfullscreen=&quot;&quot;&gt;&lt;/iframe&gt;
+</description>
+        <pubDate>Tue, 17 Mar 2015 00:00:00 -0700</pubDate>
+        <link>/2015/03/17/laser.html</link>
+        <guid isPermaLink="true">/2015/03/17/laser.html</guid>
+        
+        <category>keen</category>
+        
+        
+      </item>
+    
+      <item>
+        <title>Deadly Tiles!</title>
+        <description>&lt;p&gt;Next up is the FireSpinner. The FireSpinner is a stationary object with a
+single repeating animation that kills Keen upon contact. That’s it. Pretty
+simple.&lt;/p&gt;
+
+&lt;h3 id=&quot;tile-or-enemy&quot;&gt;Tile or Enemy?&lt;/h3&gt;
+
+&lt;p&gt;How should this fit into my class hierarchy? I have two sort of class trees
+this could fit into. One is the Sprite tree. Sprite is the base class, and from
+there it goes to MovingSprite, then Enemy. Enemy has all of the properties of a
+sprite that can move and collide with other objects, as well as the ability to
+specifically detect collision with the player.&lt;/p&gt;
+
+&lt;p&gt;The other logical choice is the Tile base class. A Tile is basically a 32x32
+block of pixels with an image and various properties such as collision.&lt;/p&gt;
+
+&lt;p&gt;I decided that a FireSpinner is more closely related to a Tile than an Enemy.
+Tile has no movement and no agenda of its own. Neither does a FireSpinner. The
+only things it lacks are animations and the ability to harm Keen, which is what
+Enemy has.&lt;/p&gt;
+
+&lt;p&gt;This fit into my code pretty easily. In my level editor, I added an “IsDeadly”
+boolean property to tiles. In my game code, for now I assume that if isDeadly
+== true, then it’s a FireSpinner. This can get more intelligent later without a
+ton of modification, such as a “DeadlyTile” class. For now all I have is the
+FireSpinner and I’ve learned not to overcomplicate class structure prematurely.&lt;/p&gt;
+
+&lt;p&gt;After that, it was a pretty routine process of adding animation frames. Giving
+it the ability to harm Keen on contact was easier than expected too. Other
+Enemy objects keep a reference to Keen and check when they come in contact with
+him. This is a bit sloppy. The FireSpinner, on the other hand, is detected by
+the Player class when Keen collides with it. I can then check if isDeadly ==
+true, and if so, kill the player.&lt;/p&gt;
+
+&lt;p&gt;I later realized this isn’t totally true to the real game because FireSpinner’s
+don’t have collision, and the way the Player detects the FireSpinner in my code
+is reliant upon the fact that he collides with the FireSpinner. If I decide I
+care about this later, I can write it more like how Enemy classes detect and
+kill Keen.&lt;/p&gt;
+
+&lt;p&gt;After that, I once again had the distinct pleasure of editing the black
+background of the FireSpinner frames to instead be red so that they would
+appear as transparent in my game. Thankfully with GIMP’s clever color threshold
+this was a lot easier than normal (Typically tiles have a black border which
+makes this impossible. The FireSpinner does not).&lt;/p&gt;
+
+&lt;iframe width=&quot;560&quot; height=&quot;315&quot; src=&quot;https://www.youtube.com/embed/0mUlXPaq5cM&quot; frameborder=&quot;0&quot; allowfullscreen=&quot;&quot;&gt;&lt;/iframe&gt;
+</description>
+        <pubDate>Sat, 28 Feb 2015 00:00:00 -0800</pubDate>
+        <link>/2015/02/28/firespinner.html</link>
+        <guid isPermaLink="true">/2015/02/28/firespinner.html</guid>
+        
+        <category>keen</category>
+        
+        
+      </item>
+    
+      <item>
+        <title>Layers AKA Pain</title>
+        <description>&lt;p&gt;A few posts ago I mentioned how I probably won’t get around to filling in the
+empty black spaces that you see all over the place. To recap, these black spots
+occur because I only paint one layer of tiles. In some cases, the drawn part of
+a tile only occupies part of the tile, and, combined with the fact that I’m
+only drawing one layer, you don’t see the background behind the tile; you just
+see empty space.&lt;/p&gt;
+
+&lt;p&gt;Before:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/images/before-layers.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;After:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/images/after-layers.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Since this is purely cosmetic and obviously required lots of
+tedious editing to both my level editor at the game itself, I never thought I’d
+get around to it. I changed my mind because, while I personally don’t really
+care about how the game looks, it did make the game feel significantly less
+like a game, so I decided it was worth fixing.&lt;/p&gt;
+
+&lt;h3 id=&quot;fix-attempt-1-the-lazy-way&quot;&gt;Fix Attempt 1: The Lazy Way&lt;/h3&gt;
+
+&lt;p&gt;I knew ahead of time that adding layer support to my already crappy level
+editor would be a nightmare. I’m also not a fan of the idea of drawing multiple
+layers of tiles every frame in a game when only a few are needed. I know modern
+computers can handle it, but I don’t like needless waste.&lt;/p&gt;
+
+&lt;p&gt;Because of this, I first tried to keep it as one layer and add more tiles to
+the sprite sheet such that each partial tile had background behind it. This
+quickly became problematic because of the repeating 8-tile background. For most
+“partial” tiles, this meant adding 8 tiles with each variation of the
+background tiles behind it. I figured this was fine for a few tiles but then
+later I realized there were more like 20 partial tiles. This was way too much
+work. This was especially fun for partial tiles that weren’t perfect rectangles
+but instead were more triangular. For those (and there were way too many) I had
+to hand draw each section of the background behind the partial tile. Below is a
+screenshot of one of these tiles.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/images/partial-tile-with-background.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Alright, so that was terrible. What’s next?&lt;/p&gt;
+
+&lt;h3 id=&quot;the-level-editor&quot;&gt;The Level Editor&lt;/h3&gt;
+
+&lt;p&gt;…&lt;/p&gt;
+
+&lt;p&gt;It’s probably a bad sign when you hate your own code.&lt;/p&gt;
+
+&lt;p&gt;As I’ve mentioned before, my level editor was written in a hurry and I avoid
+making modifications to it like the plague. For the scope of this change, I
+considered basically rewriting the XAML. I know very little about WPF layouts,
+but I briefly looked into alternatives to my StackPanel layout and
+into Canvas and Grid layouts to see if they could better suit my
+needs. Right now I have a bunch of buttons arranged alongside each
+other to represent the level. The problem with buttons is that you
+can’t draw one button’s background on top of another button’s
+background; it gets completely replaced. This would be possible with
+an image instead, but images lack other functionality (like
+selection) that I need. I didn’t bother taking the time to
+figure out the best way to do what I want in WPF because, frankly, I
+have no interest in mastering WPF at the moment. Instead, I took the
+plunge with my current button-based layout.&lt;/p&gt;
+
+&lt;p&gt;Most of the details probably aren’t worth going into. The main steps of this
+change were to add a layer of buttons for as many layers as specific, then add
+the ability to save/load these extra layers. One consequence of this was that I
+ended up changing the format of the file the level editor spits out. This
+wasn’t necessary and it added a lot of work, but it’s something I wanted(?) to
+do.&lt;/p&gt;
+
+&lt;h3 id=&quot;the-new-file-format&quot;&gt;The New File Format&lt;/h3&gt;
+
+&lt;p&gt;My first level has 3 layers. One background layer, where the tiles do nothing
+but get drawn, then two foreground layers: one drawn behind the player, one
+drawn in front of the player. With my old file format, this meant three
+mostly-redundant layers. The level has nearly 4000 tiles in it. This meant
+almost 12,000 lines in the file that were largely redundant. While not
+necessary to fix this, it annoyed me, so I fixed it. Yes, this IS premature
+optimization. Were this my job, I…well, okay, the product would be much
+better to begin with, but I wouldn’t have bothered with something like this. I
+consider this a learning experience so that I can see both sides.&lt;/p&gt;
+
+&lt;p&gt;The new file format has the concept of one line per location, rather than one
+line per tile. This means that no matter how many layers are in the level,
+there’s only one line per “spot”. The main consequence of this is that now
+the number of tiles that show up on each line may change with the level. I
+also added an additional optimization that hides some unnecessary data if
+there are no tiles on a given layer. Other than that, the format is
+practically unchanged. Still, it sent me for a loop for quite awhile in my
+level editor and I’m very glad to be done with it.&lt;/p&gt;
+
+&lt;h3 id=&quot;the-sprite-sheet&quot;&gt;The Sprite Sheet&lt;/h3&gt;
+
+&lt;p&gt;Back to the tiles themselves. While I’m eternally grateful that the sprites
+have been provided online for free, I’m not so happy with their layout. In the
+case of the player sprites, they weren’t aligned to tile sizes, so I had to
+manually space them out such that I could iterate over them. In the case of the
+tiles themselves, they had a nice black background…wonderful…oh wait, I
+need to make their empty space transparent somehow! For this I decided to use
+the color red (FF0000) to indicate a transparent color. SDL has an easy way of
+making a certain color transparent. I chose red because it doesn’t appear in
+the game anywhere.&lt;/p&gt;
+
+&lt;p&gt;Previously I didn’t need to bother filling empty space with red because I
+didn’t need to draw over the empty space. Now I do. So, I had the wonderful
+privilege of hand-drawing over several tiles with red. As mentioned before,
+this was especially fun for tiles that aren’t rectangular as I got to
+figure out where the tile ended and where the empty space began (the
+edges of tiles are always black! So was the empty space!).&lt;/p&gt;
+
+&lt;h3 id=&quot;and-finally-back-to-c&quot;&gt;And Finally, Back to C++&lt;/h3&gt;
+
+&lt;p&gt;Back in the game itself, I had to modify the function that reads in the file to
+accept my new file format. This actually wasn’t too bad because apparently my
+game assumes the level has three layers. This is brittle and I intend to fix
+this (and will have to should I ever add another level with a different number
+of layers) but it made this modification fairly fast. The result,
+finally, was a level that looks more like a level. Take a look below. There are
+some more scenic tiles actually present in the level that I may get to later,
+but for now, the repeating background was PLENTY.&lt;/p&gt;
+
+&lt;iframe width=&quot;560&quot; height=&quot;315&quot; src=&quot;https://www.youtube.com/embed/MfZB32FuDK4&quot; frameborder=&quot;0&quot; allowfullscreen=&quot;&quot;&gt;&lt;/iframe&gt;
+</description>
+        <pubDate>Mon, 23 Feb 2015 00:00:00 -0800</pubDate>
+        <link>/2015/02/23/layers.html</link>
+        <guid isPermaLink="true">/2015/02/23/layers.html</guid>
+        
+        <category>keen</category>
+        
+        
+      </item>
+    
+      <item>
+        <title>Platforms, Physics, and Item Collisions</title>
+        <description>&lt;p&gt;I took a break for a few weeks from this project and just this last week I’ve
+really gotten back into it. Since my last post I’ve fixed many more bugs that
+were a result from making the physics framerate-independent, fixed
+long-standing pole climbing bugs, added slope movement for enemy units, and,
+maybe most significantly, brought moving platforms into the level for real
+this time.&lt;/p&gt;
+
+&lt;p&gt;The video below demonstrates a lot of new things that I’ve had since my last
+post but didn’t make a video for, such as the new speed values Keen has
+(everything moves much faster now!) and more stability in general, as well as
+the things above that I just mentioned. There’s still quite a bit to do even
+for some of these new features, such as platforms, but this still marks a
+worthy milestone in making the game actually look like a game.&lt;/p&gt;
+
+&lt;iframe width=&quot;560&quot; height=&quot;315&quot; src=&quot;https://www.youtube.com/embed/3X46qPHfmpc&quot; frameborder=&quot;0&quot; allowfullscreen=&quot;&quot;&gt;&lt;/iframe&gt;
+</description>
+        <pubDate>Thu, 12 Feb 2015 00:00:00 -0800</pubDate>
+        <link>/2015/02/12/platforms.html</link>
+        <guid isPermaLink="true">/2015/02/12/platforms.html</guid>
+        
+        <category>keen</category>
+        
+        
+      </item>
+    
+      <item>
+        <title>Making the Physics Framerate-Independent</title>
+        <description>&lt;p&gt;Since my last post I’ve added the concept of an item to the game and so now
+collision with items works, but I admit a bit of laziness on my part has
+resulted in no new video. I also want to hold off on a video for now because
+there are lots of bugs I still need to work out…many parts of the gameplay
+look a bit ridiculous even though it does actually look like a game now.&lt;/p&gt;
+
+&lt;p&gt;For the last couple weeks I decided to do a fairly significant refactor of my
+physics logic. I made some really bad design decisions when I was writing that
+logic and I wanted to fix that permanently. At the time, I was mostly concerned
+with getting it working (that was hard enough!), and didn’t put too much
+thought into doing it the right way, especially since C++ was pretty new to me
+at the time too. I now have a somewhat better handle on things and could put
+more thought into the design.&lt;/p&gt;
+
+&lt;p&gt;The main feature of this
+&lt;a href=&quot;https://github.com/PlanetLotus/keen5-linux/pull/11/files&quot;&gt;refactor&lt;/a&gt; is that I
+made all velocities framerate-independent. I also made these velocity/speed
+values easier to modify by stuffing them all into header files rather than
+hardcoded numbers scattered throughout the various files.&lt;/p&gt;
+
+&lt;h3 id=&quot;framerate-independence&quot;&gt;Framerate Independence&lt;/h3&gt;
+
+&lt;p&gt;I’ve wanted to do this for quite awhile but my recent exposure to Unity3D made
+me think about it more. I wanted to do something like what Unity does in its
+update methods. There are several intricacies of Unity I don’t understand yet,
+but the main idea is there are a few methods that Unity calls every so
+often, some more than others. When you want to do programmatic movement
+of something, you have some value representing the magnitude of
+movement, based on some unit like meters or pixels. You then multiply by
+the amount of time that has elapsed since the last frame. You get this
+elapsed time via Unity’s built-in
+&lt;a href=&quot;http://docs.unity3d.com/ScriptReference/Time-deltaTime.html&quot;&gt;Time.deltaTime&lt;/a&gt;
+value.&lt;/p&gt;
+
+&lt;p&gt;Up until now my movement was based in pixels per frame. For example, for every
+game loop, my character could move 5 pixels in the left or right direction when
+walking. This is really brittle because if you change the framerate of the game
+(which I’m likely to do later), then you also need to adjust all of your speed
+values. Making this framerate-independent meant making a speed value based on
+pixels per second, rather than pixels per frame.&lt;/p&gt;
+
+&lt;p&gt;To do this, I attempted to do what Unity does by keeping track of a &lt;code class=&quot;highlighter-rouge&quot;&gt;float&lt;/code&gt;
+that would tell me how much time has elapsed since the last frame. I then
+multiply this by the velocity of each unit and that gives me essentially what I
+had before, but this time it’s not tied to the framerate.&lt;/p&gt;
+
+&lt;h3 id=&quot;problems&quot;&gt;Problems&lt;/h3&gt;
+
+&lt;p&gt;I ran into some pretty annoying problems that took me awhile to pin down. At
+first I just took the final calculated velocity value for each unit and
+multiplied by the time delta to get the final movement. In many cases, though,
+I don’t want this to happen. For example, when the player character
+is about to collide with the ground, my game logic sets the
+character’s velocity (the distance he’s about to move) to the
+distance between him and the ground. This value constantly changes
+because it depends on how close to the ground the character is when
+a collision is detected. I don’t want this to be multiplied by the
+time delta because then it’ll take multiple frames to reach the
+ground, creating some very jittery movement.&lt;/p&gt;
+
+&lt;p&gt;The solution to this was to simply negate the time delta calculation (by
+dividing by the time delta) in several spots. This sort of left a bad
+taste in my mouth because I originally wanted to multiply by the timedelta in
+one spot and have that just work. Now, though, I’m dividing by the time delta
+in several spots, which not only adds a lot of messiness to the code, but it
+also defeats the point of making velocities dependent on the passage of time.&lt;/p&gt;
+
+&lt;h3 id=&quot;next-steps&quot;&gt;Next Steps&lt;/h3&gt;
+
+&lt;p&gt;I need to figure out how best to handle these edge cases and not negate the
+calculation all over the place. I may accomplish this by only multiplying by
+the time delta in certain spots, rather than at the end of the velocity
+calculations. That will only help if the exception is more common than the rule
+though, which I have not determined yet.&lt;/p&gt;
+</description>
+        <pubDate>Sun, 04 Jan 2015 00:00:00 -0800</pubDate>
+        <link>/2015/01/04/framerate-independence.html</link>
+        <guid isPermaLink="true">/2015/01/04/framerate-independence.html</guid>
+        
+        <category>keen</category>
+        
+        
+      </item>
+    
+  </channel>
+</rss>

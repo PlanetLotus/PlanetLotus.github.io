@@ -2,6 +2,7 @@
 layout: post
 title:  "Performing a DynamoDB Migration"
 description: "The why and how of changing the format of our DynamoDB document with a no-downtime approach."
+tags: [work]
 ---
 
 ### First, Some Background

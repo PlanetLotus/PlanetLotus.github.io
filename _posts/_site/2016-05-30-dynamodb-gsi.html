@@ -1,0 +1,72 @@
+<h3 id="the-problem">The Problem</h3>
+
+<p>We regularly need a reasonably accurate list of all of our partition keys for a
+couple purposes. One, we compare them against another database that we don’t
+control and want to make sure we remove any that they remove. Two, we like to
+run “integrity checks” to make sure we have everything we think we have, and
+for reporting purposes.</p>
+
+<p>In our case, we want to fetch items by <code class="highlighter-rouge">FooGroupId1</code>. Right now we have roughly
+1.5 million items and 8 unique values for <code class="highlighter-rouge">FooGroupId1</code>. That’s an average of
+187,500 items per value. In a SQL database this really isn’t a problem, but we
+recognize that fetching large sets of rows (especially sequentially) isn’t one
+of DynamoDB’s strengths. So, we looked into GSIs…</p>
+
+<h3 id="global-secondary-indexes">Global Secondary Indexes</h3>
+
+<p>Indices? Ugh, grammar and technology don’t get along. AWS’s documentation says
+“Indexes” so I’ll go with that!</p>
+
+<p>There’s a reason this is my second post about DynamoDB. A GSI’s partition key
+can only be on a root-level property, so that’s something to watch out for as
+needs change. After <a href="2016-05-28-dynamodb-migration.markdown">migrating</a> our
+document to put <code class="highlighter-rouge">FooGroupId1</code> on the root level, we were ready to create a GSI.</p>
+
+<p>We care about three properties when doing this kind of query:</p>
+
+<ol>
+  <li><code class="highlighter-rouge">FooPartitionKey</code></li>
+  <li><code class="highlighter-rouge">FooGroupId1</code></li>
+  <li><code class="highlighter-rouge">FooGroupId2</code></li>
+</ol>
+
+<p>What we’re really after is an exhaustive list of <code class="highlighter-rouge">FooPartitionKey</code>, but having
+the other properties is helpful too. We could just scan the table, but scanning
+observes the entire document (in our case, an average of 3.5 KB or so) which is
+expensive. Further, in our case, it’s helpful to additionally partition by
+<code class="highlighter-rouge">FooGroupId1</code> so we’re not grabbing the whole table every time.</p>
+
+<p>Creating the GSI is easy enough through AWS’s interface.</p>
+
+<h3 id="gotcha">Gotcha</h3>
+
+<p>Yeah, so…it turns out, <code class="highlighter-rouge">FooPartitionKey</code> is automatically included in the
+index. So when I first created the GSI, it had the following properties:
+<code class="highlighter-rouge">FooPartitionKey</code>, <code class="highlighter-rouge">FooGroupId1</code>, <code class="highlighter-rouge">FooPartitionKey</code>, <code class="highlighter-rouge">FooGroupId2</code>. Seriously?!
+I suppose this is the downside of a schema-less document.</p>
+
+<p>It gets better. You can’t cancel the creation of an index! I had the pleasure
+of waiting for this to finish at 400 Write Capacity Units. It took about 90
+minutes. Then, I got to delete the index and do the same thing over again
+without manually including <code class="highlighter-rouge">FooPartitionKey</code>. Jeez, that was unintuitive.
+Hopefully someone can avoid that mistake because of this post.</p>
+
+<h3 id="finally">Finally!</h3>
+
+<p>After nearly 3 hours of twiddling my thumbs, the correct index was finally
+created. Now the fun begins: Measuring performance!</p>
+
+<p>I’ll spoil this early. I am pleasantly surprised with the performance of our
+GSI. We’re not at scale yet, but 1.5 million items is enough to notice
+performance degradation without a GSI. Hopefully it’ll continue to scale under
+this model.</p>
+
+<p>In production right now I have our GSI set to only 10 RCU and 7 WCU (this is
+fewer WCU than our table, and the same RCU) and no throttling has
+occurred. The reads from our GSI happen about 8 times per day at roughly the
+same time, so I would qualify this as “burst read activity” (we will change
+this so it’s spread more evenly later). The writes happen in small
+bursts every hour. Needless to say, I’m both surprised and impressed. I believe
+and hope that it will scale. I expect the average number of items per
+<code class="highlighter-rouge">FooGroupId1</code> to stay roughly the same, but our item count is expect to grow at
+least into the tens of millions in the near future.</p>

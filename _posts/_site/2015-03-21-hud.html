@@ -1,0 +1,99 @@
+<p>Here is the relevant <a href="https://github.com/PlanetLotus/keen5-linux/compare/f31a60e827bee4797a3405b0c35213fc27279730...74f79ecc77bd100dbf85a3203a5d9cbaba53d090">commit
+range</a>
+for this feature.</p>
+
+<p>I had a surprising amount of fun developing this feature.</p>
+
+<h3 id="statsmanager">StatsManager</h3>
+
+<p>StatsManager is the “backend”. It updates and returns values for the player’s
+score, number of lives, ammo, and vitalin. The idea is that other classes can
+have a reference to the single StatsManager. The “Player” class both reads from
+and updates the StatsManager. The “HUD” class just reads from it.</p>
+
+<p>Something important is that StatsManager also keeps track of whether any given
+value has changed for any particular loop (these values are reset to false
+after the HUD reads from StatsManager). This helps avoid calculating
+what the HUD should look like when it hasn’t changed. Sadly, this doesn’t
+prevent any draw() calls because the entire screen is redrawn every frame.</p>
+
+<h3 id="hud">HUD</h3>
+
+<p>The HUD (“Heads-Up Display”) is the “frontend” responsible for showing the
+player what their score is, how many lives they have, and how much ammo they
+have.</p>
+
+<p>What was particularly tricky about this feature is that I don’t have that
+font that the actual game uses for the numerical values in the HUD. To make up
+for this I took screenshots of each value (0-9, as well as a grayed-out 8) and
+put them in a few frames that the HUD then reads from. This is incredibly
+inefficient because now I’m adding a draw() call for every single digit in the
+HUD, but I wanted it to look like the actual game and this was kind of
+interesting.</p>
+
+<p>When I mentioned calculating what the HUD should look like earlier, this is
+what I was talking about. I had to write a method that takes a value, say a
+score, and chop it up digit-by-digit and show the corresponding image for that
+digit on the HUD. This brought me back to some first-quarter Computer Science
+stuff where I had to process each digit in a larger number. To get
+the least-significant digit, just take the value and mod it by 10. Then, to
+look at the next digit, divide the value by 10 to chop off the digit you just
+looked at.</p>
+
+<figure class="highlight"><pre><code class="language-cpp" data-lang="cpp"><span class="kt">void</span> <span class="n">Hud</span><span class="o">::</span><span class="n">updateProperty</span><span class="p">(</span><span class="kt">int</span> <span class="n">value</span><span class="p">,</span> <span class="kt">int</span> <span class="n">minClipIndex</span><span class="p">,</span> <span class="kt">int</span> <span class="n">maxClipIndex</span><span class="p">)</span> <span class="p">{</span>
+    <span class="kt">int</span> <span class="n">clipIndex</span> <span class="o">=</span> <span class="n">maxClipIndex</span><span class="p">;</span>
+    <span class="kt">int</span> <span class="n">digits</span> <span class="o">=</span> <span class="n">value</span><span class="p">;</span>
+    <span class="kt">int</span> <span class="n">digit</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+    <span class="n">bool</span> <span class="n">isDigitZeroAndMostSigificantDigit</span> <span class="o">=</span> <span class="nb">false</span><span class="p">;</span>
+    <span class="n">bool</span> <span class="n">isValueZeroButNotDigit</span> <span class="o">=</span> <span class="nb">false</span><span class="p">;</span>
+
+    <span class="k">while</span> <span class="p">(</span><span class="n">clipIndex</span> <span class="o">&gt;=</span> <span class="n">minClipIndex</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">digit</span> <span class="o">=</span> <span class="n">digits</span> <span class="o">%</span> <span class="mi">10</span><span class="p">;</span>
+
+        <span class="n">isDigitZeroAndMostSigificantDigit</span> <span class="o">=</span> <span class="n">digit</span> <span class="o">==</span> <span class="mi">0</span> <span class="o">&amp;&amp;</span> <span class="n">digits</span> <span class="o">/</span> <span class="mi">10</span> <span class="o">==</span> <span class="mi">0</span><span class="p">;</span>
+        <span class="n">isValueZeroButNotDigit</span> <span class="o">=</span> <span class="n">digit</span> <span class="o">!=</span> <span class="mi">0</span> <span class="o">||</span> <span class="n">clipIndex</span> <span class="o">!=</span> <span class="n">maxClipIndex</span><span class="p">;</span>
+
+        <span class="k">if</span> <span class="p">(</span><span class="n">isDigitZeroAndMostSigificantDigit</span> <span class="o">&amp;&amp;</span> <span class="n">isValueZeroButNotDigit</span><span class="p">)</span> <span class="p">{</span>
+            <span class="n">valueSrcClips</span><span class="p">[</span><span class="n">clipIndex</span><span class="p">]</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">grayEightClip</span><span class="p">;</span>
+        <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+            <span class="n">valueSrcClips</span><span class="p">[</span><span class="n">clipIndex</span><span class="p">]</span> <span class="o">=</span> <span class="n">clipsByDigit</span><span class="p">[</span><span class="n">digit</span><span class="p">];</span>
+        <span class="p">}</span>
+
+        <span class="n">digits</span> <span class="o">/=</span> <span class="mi">10</span><span class="p">;</span>
+        <span class="n">clipIndex</span><span class="o">--</span><span class="p">;</span>
+    <span class="p">}</span>
+<span class="p">}</span></code></pre></figure>
+
+<p>The draw code was kind of complex too. I made sure to add a ton of const ints
+in the header file to make it very clear what each value represents. The draw
+code involves lots of offsets for positioning both the HUD background as well
+as the 13(!!!) individual digits that go on top of it.</p>
+
+<h3 id="virtualbox">VirtualBox</h3>
+
+<p>Speaking of the draw code, I noticed (yes, actually noticed) a performance drop
+when I added all of these draw calls. I was pretty certain that my game wasn’t
+doing enough to really cause such a slowdown, and that my computer is plenty
+powerful enough to handle this. I’ve long suspected VirtualBox (Running Lubuntu
+14.04) slows down my game noticeably, and while developing this feature
+I looked into it in more detail.</p>
+
+<p>The first thing I did was pop open the task manager and noticed the game was
+using 35% of the guest CPU. That seemed unreasonable for such a small game. I
+went into VirtualBox and turned on 3D Acceleration. Now when I ran the game, I
+got a TON of OpenGL warnings, but the game did run. It also ran smoothly! Task
+manager showed 10% usage after this change. Very significant and a lot more
+reasonable. I attributed the rest not really to game code but just overhead in
+the virtual machine plus SDL overhead. Man, those OpenGL warnings were annoying
+though. I spent about an hour googling trying to fix this and confirmed that it
+is a bug in VirtualBox since Ubuntu 14.04. Not much I can do there.</p>
+
+<p>I was content with leaving 3D Acceleration on, enjoying the better performance,
+and just ignoring the full page of OpenGL warnings until I went to record a
+demo video for this blog post. Turns out VirtualBox doesn’t like my recording
+software when 3D Acceleration is turned on, or vice versa. After turning it
+back off it works fine, but you may actually notice a tiny bit of framerate
+drop in my video because of that. I’m sorry, I know you pay a lot for these
+demos.</p>
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/uE-eSZFk9sk" frameborder="0" allowfullscreen=""></iframe>

@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+    <!-- Begin Jekyll SEO tag v1.4.0 -->
+<title>Layers AKA Pain - PlanetLotus</title>
+<meta property="og:title" content="Layers AKA Pain" />
+<meta name="description" content="How I overhauled my level editor and sprite sheet to respect layers." />
+<meta property="og:description" content="How I overhauled my level editor and sprite sheet to respect layers." />
+<meta property="og:site_name" content="PlanetLotus" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2015-02-23T00:00:00-08:00" />
+<link rel="next" href="/2015/02/28/firespinner.html" title="Deadly Tiles!" />
+<link rel="prev" href="/2015/02/12/platforms.html" title="Platforms, Physics, and Item Collisions" />
+<script type="application/ld+json">
+  {
+    "@context": "http://schema.org",
+    "@type": "BlogPosting",
+    "headline": "Layers AKA Pain",
+    "datePublished": "2015-02-23T00:00:00-08:00",
+    "description": "How I overhauled my level editor and sprite sheet to respect layers.",
+    "url": "/2015/02/23/layers.html"
+  }
+</script>
+<!-- End Jekyll SEO tag -->
+
+    <link rel="stylesheet" href="/css/main.css">
+    <link rel="canonical" href="/2015/02/23/layers.html">
+</head>
+
+
+  <body>
+
+    <header class="site-header">
+
+  <div class="wrapper">
+
+    <a class="site-title" href="/">PlanetLotus</a>
+
+    <nav class="site-nav">
+      <a href="#" class="menu-icon">
+        <svg viewBox="0 0 18 15">
+          <path fill="#424242" d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.031C17.335,0,18,0.665,18,1.484L18,1.484z"/>
+          <path fill="#424242" d="M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0c0-0.82,0.665-1.484,1.484-1.484 h15.031C17.335,6.031,18,6.696,18,7.516L18,7.516z"/>
+          <path fill="#424242" d="M18,13.516C18,14.335,17.335,15,16.516,15H1.484C0.665,15,0,14.335,0,13.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.031C17.335,12.031,18,12.696,18,13.516L18,13.516z"/>
+        </svg>
+      </a>
+
+      <div class="trigger">
+        
+          
+          <a class="page-link" href="/about/">About</a>
+          
+        
+          
+        
+          
+        
+          
+        
+          
+          <a class="page-link" href="/tags.html">Tags</a>
+          
+        
+      </div>
+    </nav>
+
+  </div>
+
+</header>
+
+
+    <div class="page-content">
+      <div class="wrapper">
+        <div class="post">
+
+  <header class="post-header">
+    <h1 class="post-title">Layers AKA Pain</h1>
+    <p class="post-meta left">Feb 23, 2015</p>
+
+    
+        <p class="post-meta right">
+            keen
+        </p>
+    
+  </header>
+
+  <article class="post-content clear">
+    <p>A few posts ago I mentioned how I probably won’t get around to filling in the
+empty black spaces that you see all over the place. To recap, these black spots
+occur because I only paint one layer of tiles. In some cases, the drawn part of
+a tile only occupies part of the tile, and, combined with the fact that I’m
+only drawing one layer, you don’t see the background behind the tile; you just
+see empty space.</p>
+
+<p>Before:</p>
+
+<p><img src="/images/before-layers.png" alt="" /></p>
+
+<p>After:</p>
+
+<p><img src="/images/after-layers.png" alt="" /></p>
+
+<p>Since this is purely cosmetic and obviously required lots of
+tedious editing to both my level editor at the game itself, I never thought I’d
+get around to it. I changed my mind because, while I personally don’t really
+care about how the game looks, it did make the game feel significantly less
+like a game, so I decided it was worth fixing.</p>
+
+<h3 id="fix-attempt-1-the-lazy-way">Fix Attempt 1: The Lazy Way</h3>
+
+<p>I knew ahead of time that adding layer support to my already crappy level
+editor would be a nightmare. I’m also not a fan of the idea of drawing multiple
+layers of tiles every frame in a game when only a few are needed. I know modern
+computers can handle it, but I don’t like needless waste.</p>
+
+<p>Because of this, I first tried to keep it as one layer and add more tiles to
+the sprite sheet such that each partial tile had background behind it. This
+quickly became problematic because of the repeating 8-tile background. For most
+“partial” tiles, this meant adding 8 tiles with each variation of the
+background tiles behind it. I figured this was fine for a few tiles but then
+later I realized there were more like 20 partial tiles. This was way too much
+work. This was especially fun for partial tiles that weren’t perfect rectangles
+but instead were more triangular. For those (and there were way too many) I had
+to hand draw each section of the background behind the partial tile. Below is a
+screenshot of one of these tiles.</p>
+
+<p><img src="/images/partial-tile-with-background.png" alt="" /></p>
+
+<p>Alright, so that was terrible. What’s next?</p>
+
+<h3 id="the-level-editor">The Level Editor</h3>
+
+<p>…</p>
+
+<p>It’s probably a bad sign when you hate your own code.</p>
+
+<p>As I’ve mentioned before, my level editor was written in a hurry and I avoid
+making modifications to it like the plague. For the scope of this change, I
+considered basically rewriting the XAML. I know very little about WPF layouts,
+but I briefly looked into alternatives to my StackPanel layout and
+into Canvas and Grid layouts to see if they could better suit my
+needs. Right now I have a bunch of buttons arranged alongside each
+other to represent the level. The problem with buttons is that you
+can’t draw one button’s background on top of another button’s
+background; it gets completely replaced. This would be possible with
+an image instead, but images lack other functionality (like
+selection) that I need. I didn’t bother taking the time to
+figure out the best way to do what I want in WPF because, frankly, I
+have no interest in mastering WPF at the moment. Instead, I took the
+plunge with my current button-based layout.</p>
+
+<p>Most of the details probably aren’t worth going into. The main steps of this
+change were to add a layer of buttons for as many layers as specific, then add
+the ability to save/load these extra layers. One consequence of this was that I
+ended up changing the format of the file the level editor spits out. This
+wasn’t necessary and it added a lot of work, but it’s something I wanted(?) to
+do.</p>
+
+<h3 id="the-new-file-format">The New File Format</h3>
+
+<p>My first level has 3 layers. One background layer, where the tiles do nothing
+but get drawn, then two foreground layers: one drawn behind the player, one
+drawn in front of the player. With my old file format, this meant three
+mostly-redundant layers. The level has nearly 4000 tiles in it. This meant
+almost 12,000 lines in the file that were largely redundant. While not
+necessary to fix this, it annoyed me, so I fixed it. Yes, this IS premature
+optimization. Were this my job, I…well, okay, the product would be much
+better to begin with, but I wouldn’t have bothered with something like this. I
+consider this a learning experience so that I can see both sides.</p>
+
+<p>The new file format has the concept of one line per location, rather than one
+line per tile. This means that no matter how many layers are in the level,
+there’s only one line per “spot”. The main consequence of this is that now
+the number of tiles that show up on each line may change with the level. I
+also added an additional optimization that hides some unnecessary data if
+there are no tiles on a given layer. Other than that, the format is
+practically unchanged. Still, it sent me for a loop for quite awhile in my
+level editor and I’m very glad to be done with it.</p>
+
+<h3 id="the-sprite-sheet">The Sprite Sheet</h3>
+
+<p>Back to the tiles themselves. While I’m eternally grateful that the sprites
+have been provided online for free, I’m not so happy with their layout. In the
+case of the player sprites, they weren’t aligned to tile sizes, so I had to
+manually space them out such that I could iterate over them. In the case of the
+tiles themselves, they had a nice black background…wonderful…oh wait, I
+need to make their empty space transparent somehow! For this I decided to use
+the color red (FF0000) to indicate a transparent color. SDL has an easy way of
+making a certain color transparent. I chose red because it doesn’t appear in
+the game anywhere.</p>
+
+<p>Previously I didn’t need to bother filling empty space with red because I
+didn’t need to draw over the empty space. Now I do. So, I had the wonderful
+privilege of hand-drawing over several tiles with red. As mentioned before,
+this was especially fun for tiles that aren’t rectangular as I got to
+figure out where the tile ended and where the empty space began (the
+edges of tiles are always black! So was the empty space!).</p>
+
+<h3 id="and-finally-back-to-c">And Finally, Back to C++</h3>
+
+<p>Back in the game itself, I had to modify the function that reads in the file to
+accept my new file format. This actually wasn’t too bad because apparently my
+game assumes the level has three layers. This is brittle and I intend to fix
+this (and will have to should I ever add another level with a different number
+of layers) but it made this modification fairly fast. The result,
+finally, was a level that looks more like a level. Take a look below. There are
+some more scenic tiles actually present in the level that I may get to later,
+but for now, the repeating background was PLENTY.</p>
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/MfZB32FuDK4" frameborder="0" allowfullscreen=""></iframe>
+
+  </article>
+
+  <div id="disqus_thread"></div>
+<script>
+var disqus_config = function () {
+    this.page.url = 'https://127.0.0.1/2015/02/23/layers.html';
+    this.page.identifier = '/2015/02/23/layers';
+};
+(function() { // DON'T EDIT BELOW THIS LINE
+    var d = document, s = d.createElement('script');
+    s.src = '//planetlotus.disqus.com/embed.js';
+    s.setAttribute('data-timestamp', +new Date());
+    (d.head || d.body).appendChild(s);
+})();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript" rel="nofollow">comments powered by Disqus.</a></noscript>
+
+
+</div>
+
+      </div>
+    </div>
+
+    <footer class="site-footer">
+
+  <div class="wrapper">
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col  footer-col-2">
+        <ul class="social-media-list">
+          
+          <li>
+            <a href="https://github.com/PlanetLotus">
+              <span class="icon  icon--github">
+                <svg viewBox="0 0 16 16">
+                  <path fill="#828282" d="M7.999,0.431c-4.285,0-7.76,3.474-7.76,7.761 c0,3.428,2.223,6.337,5.307,7.363c0.388,0.071,0.53-0.168,0.53-0.374c0-0.184-0.007-0.672-0.01-1.32 c-2.159,0.469-2.614-1.04-2.614-1.04c-0.353-0.896-0.862-1.135-0.862-1.135c-0.705-0.481,0.053-0.472,0.053-0.472 c0.779,0.055,1.189,0.8,1.189,0.8c0.692,1.186,1.816,0.843,2.258,0.645c0.071-0.502,0.271-0.843,0.493-1.037 C4.86,11.425,3.049,10.76,3.049,7.786c0-0.847,0.302-1.54,0.799-2.082C3.768,5.507,3.501,4.718,3.924,3.65 c0,0,0.652-0.209,2.134,0.796C6.677,4.273,7.34,4.187,8,4.184c0.659,0.003,1.323,0.089,1.943,0.261 c1.482-1.004,2.132-0.796,2.132-0.796c0.423,1.068,0.157,1.857,0.077,2.054c0.497,0.542,0.798,1.235,0.798,2.082 c0,2.981-1.814,3.637-3.543,3.829c0.279,0.24,0.527,0.713,0.527,1.437c0,1.037-0.01,1.874-0.01,2.129 c0,0.208,0.14,0.449,0.534,0.373c3.081-1.028,5.302-3.935,5.302-7.362C15.76,3.906,12.285,0.431,7.999,0.431z"/>
+                </svg>
+              </span>
+
+              <span class="username">PlanetLotus</span>
+            </a>
+          </li>
+          
+
+          
+        </ul>
+      </div>
+
+      <div class="footer-col  footer-col-3">
+        <p class="text">Side project ramblings, lessons learned, and ravings about awesome software.
+</p>
+      </div>
+    </div>
+
+  </div>
+
+</footer>
+
+
+  </body>
+
+</html>

@@ -10,10 +10,10 @@ title: Tags
 <ul class="no-bullets">
     {% for post in tag[1] %}
     <li>
+        <span class="post-meta date-fixed-width">{{ post.date | date_to_string }}</span>
         <a href="{{ site.baseurl }}{{ post.url }}">
             {{ post.title }}
         </a>
-        <span class="post-meta">{{ post.date | date_to_string }}</span>
     </li>
     {% endfor %}
 </ul>

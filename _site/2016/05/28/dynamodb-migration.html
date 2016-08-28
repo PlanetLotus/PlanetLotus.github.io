@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+    <!-- Begin Jekyll SEO tag v1.4.0 -->
+<title>Performing a DynamoDB Migration - PlanetLotus</title>
+<meta property="og:title" content="Performing a DynamoDB Migration" />
+<meta name="description" content="The why and how of changing the format of our DynamoDB document with a no-downtime approach." />
+<meta property="og:description" content="The why and how of changing the format of our DynamoDB document with a no-downtime approach." />
+<meta property="og:site_name" content="PlanetLotus" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2016-05-28T00:00:00-07:00" />
+<link rel="next" href="/2016/05/30/dynamodb-gsi.html" title="DynamoDB Global Secondary Index" />
+<link rel="prev" href="/2015/03/21/hud.html" title="Stats &amp; HUD" />
+<script type="application/ld+json">
+  {
+    "@context": "http://schema.org",
+    "@type": "BlogPosting",
+    "headline": "Performing a DynamoDB Migration",
+    "datePublished": "2016-05-28T00:00:00-07:00",
+    "description": "The why and how of changing the format of our DynamoDB document with a no-downtime approach.",
+    "url": "/2016/05/28/dynamodb-migration.html"
+  }
+</script>
+<!-- End Jekyll SEO tag -->
+
+    <link rel="stylesheet" href="/css/main.css">
+    <link rel="canonical" href="/2016/05/28/dynamodb-migration.html">
+</head>
+
+
+  <body>
+
+    <header class="site-header">
+
+  <div class="wrapper">
+
+    <a class="site-title" href="/">PlanetLotus</a>
+
+    <nav class="site-nav">
+      <a href="#" class="menu-icon">
+        <svg viewBox="0 0 18 15">
+          <path fill="#424242" d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.031C17.335,0,18,0.665,18,1.484L18,1.484z"/>
+          <path fill="#424242" d="M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0c0-0.82,0.665-1.484,1.484-1.484 h15.031C17.335,6.031,18,6.696,18,7.516L18,7.516z"/>
+          <path fill="#424242" d="M18,13.516C18,14.335,17.335,15,16.516,15H1.484C0.665,15,0,14.335,0,13.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.031C17.335,12.031,18,12.696,18,13.516L18,13.516z"/>
+        </svg>
+      </a>
+
+      <div class="trigger">
+        
+          
+          <a class="page-link" href="/about/">About</a>
+          
+        
+          
+        
+          
+        
+          
+        
+          
+          <a class="page-link" href="/tags.html">Tags</a>
+          
+        
+      </div>
+    </nav>
+
+  </div>
+
+</header>
+
+
+    <div class="page-content">
+      <div class="wrapper">
+        <div class="post">
+
+  <header class="post-header">
+    <h1 class="post-title">Performing a DynamoDB Migration</h1>
+    <p class="post-meta left">May 28, 2016</p>
+
+    
+        <p class="post-meta right">
+            work
+        </p>
+    
+  </header>
+
+  <article class="post-content clear">
+    <h3 id="first-some-background">First, Some Background</h3>
+
+<p>At the company I work for, my “area of ownership” is a chain of several backend
+programs that are designed to scale horizontally (more machines, not better
+hardware). A couple months ago I recommended we switch from using Azure
+DocumentDB as our primary data store to Amazon DynamoDB. The “why” of that
+could easily be another post, so for now we’ll stick with the fact that we’ve
+only recently started using DynamoDB and are still figuring out what its
+strengths and weaknesses are, and how well our model fits with it.</p>
+
+<p>I soon found myself wanting to use a GSI (Global Secondary Index) to perform a
+quick lookup of a large set of data (the “how” and “why” of which should also
+be another post) and instantly ran into a limitation of DynamoDB: You
+can’t use a nested property as the partition key of an index. It has to be a
+root-level property. That means it’s time to change the document format (or
+what I’d call a “migration”) and update existing documents along the
+way.</p>
+
+<h3 id="now-the-challenges">Now, the Challenges…</h3>
+
+<p>My company is still young enough that our database isn’t huge yet. Our DynamoDB
+table currently has just over 1.5 million items, which is big enough to make me
+really think about the best way to migrate data, but not so large that it’s
+super expensive. Our data by its very nature will grow over time, and I expect
+we will have over 10 million items, maybe 50 million, within the next year or
+two. I would consider us “at scale” at 100 million, at which point it’ll still
+keep growing, but at a slower rate (I apologize for not being super clear about
+what we do at this point. I want to respect our company’s privacy until I get
+the OK to make more details public).</p>
+
+<p>Because we’re planning for large growth, I wanted to do this the right way. At
+this stage, it’s not a big deal if this particular system has a day of downtime
+(it’s not user-facing) but at scale we wouldn’t want any downtime. With that in
+mind, I took the extra time to make this happen with no downtime and to devise
+a reusable strategy for future migrations. Why would I want this to be easy?!</p>
+
+<p>“No downtime” in our system means that the migration will be running while
+another process is modifying our documents, so that means the code running in
+production must be aware of both the old and new document formats. This process
+runs once an hour and involves reading existing items, updating them, and
+adding new items.</p>
+
+<p>While I was at it, I reassessed our document format. There were many things
+wrong with the format in addition to needing to move one property to the root
+level. I ended up fixing every problem I could think of so that I only had to
+migrate once (at least, until we discover more problems). This ended up being
+much more complicated than moving a field because several data types changed,
+requiring properties to be remapped.</p>
+
+<h3 id="the-plan">The Plan</h3>
+
+<p>With the help of a coworker, we broke this down into these simple-ish steps:</p>
+
+<ol>
+  <li>Create a new DynamoDB table for the new format</li>
+  <li>Make the production process do reads from the new table first, then if the item isn’t there yet, read from the old table</li>
+  <li>Make the production process write only to the new table</li>
+  <li>Make the migrator scan the old table, writing to the new table but only if that document doesn’t already exist in the new table</li>
+</ol>
+
+<p><img src="/images/dynamodb-migration/steps.png" alt="" title="Now you see why I didn't go into graphic design. Next time I'll at least use something other than Paint." /></p>
+
+<p>The important thing to note here is that once the migration starts, the old
+table will never be written to again. It’ll only be read from if the document
+in question doesn’t already exist in the new table. Even if the migration fails
+midway through and has to be restarted, it will only write each document once.</p>
+
+<h3 id="running-the-migration">Running the Migration</h3>
+
+<p>Fast-forward several hours of code changes and testing, and I was ready to run
+the migration. I wrote a quick script to scan the old table, converting the
+documents to the new format and uploading to the new table if it wasn’t already
+there.</p>
+
+<p>I wasn’t sure what Read Capacity Unit (RCU) and Write Capacity Unit (WCU)
+values to use. Honestly, I guessed, knowing I could increase the value as many
+times per day as I wanted. For our 1.5 million items totaling 5.1 GB, I picked
+100 RCU on the old table and 50 RCU, 400 WCU on the new table. I added a good
+amount of logging to the script, threw it on an EC2 instance, then let it rip.</p>
+
+<p>I quickly confirmed that new documents being added looked the way I wanted to.
+The hours of testing paid off. This post ignores how much time was spent in C#
+creating a new format for an otherwise simple goal of moving a property to the
+root of a document, so while that’s where most of the effort went, it certainly
+wasn’t the interesting part of the migration.</p>
+
+<p>I was impressed with the performance. With the resources I threw at it, I
+figured it would take about 6 hours to finish, which would put it at around
+10pm that day. Great idea, by the way, starting a lengthy process at 4pm…</p>
+
+<p>The RCU and WCU values I chose seemed to be reasonable. I actually
+over-provisioned pretty much everywhere. Reads from the old table never went
+above 40, and I had it set at 100. Reads from the new table never went above 15
+or so and I had it at 50 (this was likely to burst though, so it was good to
+over-provision). Writes to the new table never went above 335 or so,
+and I had that set to 400.</p>
+
+<p>One thing I’m still unsure of is how I’d squeeze more performance out of
+DynamoDB if I wanted it to go faster. Would I need to run my code on more
+machines? Would my reads/writes need to be more distributed, rather than
+sequential? This seems like a very low limit, so I’m sure there’s plenty more I
+could do to make it go faster. If you know, please leave a comment down below.</p>
+
+<h3 id="performance-degradation">Performance Degradation</h3>
+
+<p>I kept an eye on the logging throughout the night. I started to notice around
+9pm that things had started slowing down significantly, to the point where I
+was going to lose sleep making sure it finished. I spent about an hour looking
+at AWS’s wonderful metrics trying to figure out why throughput suddenly tanked
+to about 40% of where it was.</p>
+
+<p><img src="/images/dynamodb-migration/old-table-reads.png" alt="" title="Reads on the old table over time" /></p>
+
+<p><img src="/images/dynamodb-migration/writes.png" alt="" title="Writes on the new table over time" /></p>
+
+<p>I’m still not totally sure what went wrong, but I think it had something to do
+with my scanning of the old table. At some point, the scanning wasn’t returning
+results for every page, so my script had to keep querying DynamoDB trying to
+get more data, knowing that it wasn’t at the end of the table yet. I’m not sure
+what causes this. I tried bumping up the RCU and WCU values to no effect. Sadly
+no “lesson learned” here; I’ll just have to keep an eye on scanning behavior as
+the table grows. If you know what I may have missed, please let me know with a
+comment below.</p>
+
+<p><img src="/images/dynamodb-migration/scan-results.png" alt="Table scan showing decreased result count over time" title="Scan of the old table" /></p>
+
+<h3 id="conclusion">Conclusion</h3>
+
+<p>To my surprise, it’s been several days and I still haven’t found any bugs in
+the migration. The morning after the migration, I wrote a quick script to grab
+all of the IDs out of both the old and new tables, making sure no IDs were in
+the old table that weren’t in the new table. It’s nice to use a system that
+just works.</p>
+
+  </article>
+
+  <div id="disqus_thread"></div>
+<script>
+var disqus_config = function () {
+    this.page.url = 'https://127.0.0.1/2016/05/28/dynamodb-migration.html';
+    this.page.identifier = '/2016/05/28/dynamodb-migration';
+};
+(function() { // DON'T EDIT BELOW THIS LINE
+    var d = document, s = d.createElement('script');
+    s.src = '//planetlotus.disqus.com/embed.js';
+    s.setAttribute('data-timestamp', +new Date());
+    (d.head || d.body).appendChild(s);
+})();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript" rel="nofollow">comments powered by Disqus.</a></noscript>
+
+
+</div>
+
+      </div>
+    </div>
+
+    <footer class="site-footer">
+
+  <div class="wrapper">
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col  footer-col-2">
+        <ul class="social-media-list">
+          
+          <li>
+            <a href="https://github.com/PlanetLotus">
+              <span class="icon  icon--github">
+                <svg viewBox="0 0 16 16">
+                  <path fill="#828282" d="M7.999,0.431c-4.285,0-7.76,3.474-7.76,7.761 c0,3.428,2.223,6.337,5.307,7.363c0.388,0.071,0.53-0.168,0.53-0.374c0-0.184-0.007-0.672-0.01-1.32 c-2.159,0.469-2.614-1.04-2.614-1.04c-0.353-0.896-0.862-1.135-0.862-1.135c-0.705-0.481,0.053-0.472,0.053-0.472 c0.779,0.055,1.189,0.8,1.189,0.8c0.692,1.186,1.816,0.843,2.258,0.645c0.071-0.502,0.271-0.843,0.493-1.037 C4.86,11.425,3.049,10.76,3.049,7.786c0-0.847,0.302-1.54,0.799-2.082C3.768,5.507,3.501,4.718,3.924,3.65 c0,0,0.652-0.209,2.134,0.796C6.677,4.273,7.34,4.187,8,4.184c0.659,0.003,1.323,0.089,1.943,0.261 c1.482-1.004,2.132-0.796,2.132-0.796c0.423,1.068,0.157,1.857,0.077,2.054c0.497,0.542,0.798,1.235,0.798,2.082 c0,2.981-1.814,3.637-3.543,3.829c0.279,0.24,0.527,0.713,0.527,1.437c0,1.037-0.01,1.874-0.01,2.129 c0,0.208,0.14,0.449,0.534,0.373c3.081-1.028,5.302-3.935,5.302-7.362C15.76,3.906,12.285,0.431,7.999,0.431z"/>
+                </svg>
+              </span>
+
+              <span class="username">PlanetLotus</span>
+            </a>
+          </li>
+          
+
+          
+        </ul>
+      </div>
+
+      <div class="footer-col  footer-col-3">
+        <p class="text">Side project ramblings, lessons learned, and ravings about awesome software.
+</p>
+      </div>
+    </div>
+
+  </div>
+
+</footer>
+
+
+  </body>
+
+</html>

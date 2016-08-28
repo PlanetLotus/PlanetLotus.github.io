@@ -2,6 +2,7 @@
 layout: post
 title: "DynamoDB Global Secondary Index"
 description: "Using DynamoDB to get a quick lookup of all of the partition keys."
+tags: [work]
 ---
 
 ### The Problem

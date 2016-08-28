@@ -2,6 +2,7 @@
 layout: post
 title:  "Adding Backgrounds, Units, and Items"
 description: "A deeper demo of the first level of Commander Keen 5."
+tags: [keen]
 ---
 I took the last month or so off to work on a [3D RTS
 Tutorial](https://github.com/PlanetLotus/UnityRTSTutorial) and a [3D FPS

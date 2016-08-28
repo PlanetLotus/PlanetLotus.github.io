@@ -2,6 +2,7 @@
 layout: post
 title:  "Platforms, Physics, and Item Collisions"
 description: "A demo of bug fixes and polishing features."
+tags: [keen]
 ---
 I took a break for a few weeks from this project and just this last week I've
 really gotten back into it. Since my last post I've fixed many more bugs that

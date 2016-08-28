@@ -1,0 +1,74 @@
+<p>I thought this would be one of the hardest features to implement and it didn’t
+end up being nearly that hard. It took a day to fully implement with a few left
+over bugs. I made the mistake of not writing this right afterward, but instead
+several days later, so it’s not as fresh in my mind but I think I can still
+explain the process.</p>
+
+<h3 id="the-problem">The Problem</h3>
+
+<p>This isn’t a common platformer feature. Hanging from a ledge refers to one of
+the player’s top corners colliding with an edge tile’s opposite top corner
+while the player is holding the arrow key in the corresponding direction. When
+that specific collision happens, the player is supposed to hang from the ledge,
+then also have the ability to either drop down or roll onto the ledge
+above. These are two distinct pieces of functionality for the feature.</p>
+
+<h3 id="the-specifics">The Specifics</h3>
+
+<p>The first step was the collision detection. I broke this problem down into a few requirements:</p>
+
+<ul>
+  <li>Must be falling to collide <code class="highlighter-rouge">yVelocity &gt; 0</code></li>
+  <li>Must be holding corresponding key</li>
+</ul>
+
+<p><a href="https://github.com/PlanetLotus/keen5-linux/blob/master/src/Player.cpp#L504-L533">The
+algorithm</a>
+was pretty straightforward because it’s similar to what I’ve done
+with other collision detection problems. This was actually even easier than
+most because, based on the player’s position, I could look for a tile at a
+specific spot rather than a range of spots. This avoids looping through a bunch
+of tiles.</p>
+
+<figure class="highlight"><pre><code class="language-cpp" data-lang="cpp"><span class="kt">int</span> <span class="n">tileRow</span> <span class="o">=</span> <span class="n">nextKeenTop</span> <span class="o">/</span> <span class="n">TILE_HEIGHT</span><span class="p">;</span>
+<span class="kt">int</span> <span class="n">tileCol</span> <span class="o">=</span> <span class="n">nextKeenRight</span> <span class="o">/</span> <span class="n">TILE_WIDTH</span><span class="p">;</span>
+
+<span class="n">Tile</span><span class="o">*</span> <span class="n">tile</span> <span class="o">=</span> <span class="n">tilesRef</span><span class="p">[</span><span class="n">tileCol</span><span class="p">][</span><span class="n">tileRow</span><span class="p">];</span>
+<span class="k">if</span> <span class="p">(</span><span class="n">tile</span> <span class="o">==</span> <span class="nb">NULL</span> <span class="o">||</span> <span class="o">!</span><span class="n">tile</span><span class="o">-&gt;</span><span class="n">getIsEdge</span><span class="p">())</span>
+    <span class="k">return</span><span class="p">;</span></code></pre></figure>
+
+<p>Later, though, I realized I did have to do some looping because checking Keen’s
+current position against the tile’s position makes it easy for Keen to skip the
+pixel-perfect collision since falling has Keen zooming by at multiple pixels
+per frame. With that in mind, just like I’ve done with other collision
+algorithms, I check for the top of a tile between where Keen currently is and
+where he’s about to fall to this frame. That covers all of the ground traveled.</p>
+
+<figure class="highlight"><pre><code class="language-cpp" data-lang="cpp"><span class="kt">int</span> <span class="n">yCollide</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">;</span>
+
+<span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="n">keenTop</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;=</span> <span class="n">nextKeenTop</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">i</span> <span class="o">%</span> <span class="n">TILE_HEIGHT</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">yCollide</span> <span class="o">=</span> <span class="n">i</span><span class="p">;</span>
+        <span class="k">break</span><span class="p">;</span>
+    <span class="p">}</span>
+<span class="p">}</span></code></pre></figure>
+
+<p>In retrospect, I could probably optimize this by taking advantage of the fact
+that I’m using mod, but for now this seems more intuitive.</p>
+
+<p>After that was done I had to add some logic that allows Keen to fall from the
+ledge as well as disable the ability to jump, pogo, or shoot.</p>
+
+<p>Next up was rolling onto the ledge. This took awhile because I don’t have a
+good framework for timed animations, and that’s what this is. Player input has
+to be essentially disabled while the animation runs and then re-enabled after
+it’s done. Right now my logic for this is pretty messy because it’s scattered
+all over the place. This actually took more work determining whether my logic
+was messed up or whether the frames on the sprite sheet weren’t where they
+should be, though. It ended up mostly being the frames (after all, my logic is
+<em>never</em> incorrect!). Unfortunately there’s not much interesting to show
+regarding the <a href="https://github.com/PlanetLotus/keen5-linux/blob/master/src/Player.cpp#L567-L597">animation
+algorithm</a>,
+just that it ended up being harder than the rest of this feature.</p>
+
+<iframe width="560" height="315" src="//www.youtube.com/embed/l3bUzzVmzAU" frameborder="0" allowfullscreen=""></iframe>

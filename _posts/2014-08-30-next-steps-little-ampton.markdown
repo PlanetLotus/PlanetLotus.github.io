@@ -3,6 +3,7 @@ layout: post
 title:  "Next Steps: \"Little Ampton\""
 date:   2014-08-30 16:35:48
 description: "Creating Ampton: The second NPC in Commander Keen 5."
+tags: [keen]
 ---
 I recently finished the AI for Sparky, the most basic enemy unit in the game. AI is of particular interest to me currently so I'm choosing the next most basic unit as my next step. This guy's name is "Little Ampton" (apparently there's some background to that name, but I'm not going into it). As with Sparky, I'm going to approach this problem with a state machine with the following states:
 

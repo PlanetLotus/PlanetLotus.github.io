@@ -1,0 +1,56 @@
+<p>I recently finished the AI for Sparky, the most basic enemy unit in the game. AI is of particular interest to me currently so I’m choosing the next most basic unit as my next step. This guy’s name is “Little Ampton” (apparently there’s some background to that name, but I’m not going into it). As with Sparky, I’m going to approach this problem with a state machine with the following states:</p>
+
+<ul>
+  <li>Patrol</li>
+  <li>Climb up pole</li>
+  <li>Climb down pole</li>
+  <li>Change direction</li>
+  <li>Fix machine</li>
+  <li>Stunned</li>
+</ul>
+
+<p>Here are some notes of mine regarding each state:</p>
+
+<h3 id="patrol">Patrol</h3>
+
+<ul>
+  <li>Move left/right on ground</li>
+  <li>If colliding with Keen, push him</li>
+  <li>If colliding with a pole, climb it (state = <code class="highlighter-rouge">CLIMB_UP</code>)</li>
+  <li>If colliding with a machine, fix it (state = <code class="highlighter-rouge">FIX_MACHINE</code>)</li>
+</ul>
+
+<h3 id="climb-up">Climb up</h3>
+
+<ul>
+  <li>Kill Keen on contact</li>
+  <li>At top of pole, exit to ground (state = <code class="highlighter-rouge">PATROL</code>)</li>
+</ul>
+
+<h3 id="climb-down">Climb down</h3>
+
+<ul>
+  <li>Kill Keen on contact</li>
+  <li>Exit to ground when colliding with a tile with top-collision (state = <code class="highlighter-rouge">PATROL</code>)</li>
+</ul>
+
+<h3 id="change-direction">Change direction</h3>
+
+<ul>
+  <li>Play animation for a few calls</li>
+  <li>When done, go to previous state</li>
+</ul>
+
+<h3 id="fix-machine">Fix machine</h3>
+
+<ul>
+  <li>Play animation for a few calls</li>
+  <li>When done, patrol (state = <code class="highlighter-rouge">PATROL</code>)</li>
+</ul>
+
+<h3 id="stunned">Stunned</h3>
+
+<ul>
+  <li>Occurs when shot once by Keen</li>
+  <li>Play looping animation</li>
+</ul>

@@ -2,6 +2,7 @@
 layout: post
 title:  "Stats & HUD"
 description: "Creating a HUD and stats menu."
+tags: [keen]
 ---
 
 Here is the relevant [commit

@@ -2,6 +2,7 @@
 layout: post
 title:  "Deadly Tiles!"
 description: "How I implemented a stationary enemy in Commander Keen 5."
+tags: [keen]
 ---
 Next up is the FireSpinner. The FireSpinner is a stationary object with a
 single repeating animation that kills Keen upon contact. That's it. Pretty

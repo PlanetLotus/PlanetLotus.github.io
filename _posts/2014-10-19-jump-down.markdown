@@ -2,6 +2,7 @@
 layout: post
 title:  "Jumping Down From Platforms"
 description: "Jumping down from platforms in Commander Keen 5."
+tags: [keen]
 ---
 This feature was simple enough. I was actually very fortunate...it worked on
 the first try. Because of its simplicity, this one's a little easier to show,

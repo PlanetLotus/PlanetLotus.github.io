@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+    <!-- Begin Jekyll SEO tag v1.4.0 -->
+<title>Why I Decided to Ditch AutoMapper - PlanetLotus</title>
+<meta property="og:title" content="Why I Decided to Ditch AutoMapper" />
+<meta name="description" content="Mapping objects is painful. AutoMapper makes many aspects of mapping less painful, but is the cost worth it?" />
+<meta property="og:description" content="Mapping objects is painful. AutoMapper makes many aspects of mapping less painful, but is the cost worth it?" />
+<meta property="og:site_name" content="PlanetLotus" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2016-06-16T00:00:00-07:00" />
+<link rel="next" href="/2016/07/24/solution-wide-analysis.html" title="How ReSharper&#39;s Solution-Wide Analysis Exposes Bugs" />
+<link rel="prev" href="/2016/05/30/dynamodb-gsi.html" title="DynamoDB Global Secondary Index" />
+<script type="application/ld+json">
+  {
+    "@context": "http://schema.org",
+    "@type": "BlogPosting",
+    "headline": "Why I Decided to Ditch AutoMapper",
+    "datePublished": "2016-06-16T00:00:00-07:00",
+    "description": "Mapping objects is painful. AutoMapper makes many aspects of mapping less painful, but is the cost worth it?",
+    "url": "/2016/06/16/automapper.html"
+  }
+</script>
+<!-- End Jekyll SEO tag -->
+
+    <link rel="stylesheet" href="/css/main.css">
+    <link rel="canonical" href="/2016/06/16/automapper.html">
+</head>
+
+
+  <body>
+
+    <header class="site-header">
+
+  <div class="wrapper">
+
+    <a class="site-title" href="/">PlanetLotus</a>
+
+    <nav class="site-nav">
+      <a href="#" class="menu-icon">
+        <svg viewBox="0 0 18 15">
+          <path fill="#424242" d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.031C17.335,0,18,0.665,18,1.484L18,1.484z"/>
+          <path fill="#424242" d="M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0c0-0.82,0.665-1.484,1.484-1.484 h15.031C17.335,6.031,18,6.696,18,7.516L18,7.516z"/>
+          <path fill="#424242" d="M18,13.516C18,14.335,17.335,15,16.516,15H1.484C0.665,15,0,14.335,0,13.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.031C17.335,12.031,18,12.696,18,13.516L18,13.516z"/>
+        </svg>
+      </a>
+
+      <div class="trigger">
+        
+          
+          <a class="page-link" href="/about/">About</a>
+          
+        
+          
+        
+          
+        
+          
+        
+          
+          <a class="page-link" href="/tags.html">Tags</a>
+          
+        
+      </div>
+    </nav>
+
+  </div>
+
+</header>
+
+
+    <div class="page-content">
+      <div class="wrapper">
+        <div class="post">
+
+  <header class="post-header">
+    <h1 class="post-title">Why I Decided to Ditch AutoMapper</h1>
+    <p class="post-meta left">Jun 16, 2016</p>
+
+    
+        <p class="post-meta right">
+            work
+        </p>
+    
+  </header>
+
+  <article class="post-content clear">
+    <h3 id="background">Background</h3>
+
+<p>First off, I have no desire to bash a free tool that does its job very well.
+Some people love AutoMapper. I really think some devs will love what it has to
+offer and others won’t. For what it sets out to do, it does a great job, and
+since I haven’t filed any bugs or feature requests with it, it wouldn’t be fair
+for me to publicly bash it for what it’s supposed to do. Keep that in mind for
+the remainder of the post. I appreciate all the work that’s gone into it.</p>
+
+<p>That said, I started using AutoMapper because a coworker wanted to. After
+investing several hours into using it over several months, I’m ready to report
+why I choose to write new code without AutoMapper, and why I wouldn’t want to
+work on a team that insisted on using AutoMapper.</p>
+
+<p>It’s worth noting that I use AutoMapper in an MVC project, so all of my
+examples will be based in an MVC project.</p>
+
+<h3 id="what-automapper-does">What AutoMapper Does</h3>
+
+<p>AutoMapper is a .NET tool that seeks to make mapping objects between formats
+less tedious and less time consuming without sacrificing performance. As any
+MVC developer will tell you, mapping objects from database, to business layer,
+to view is really tedious and seems like a huge waste of time.</p>
+
+<p>What AutoMapper is very good at is mapping two objects without any
+customization. If <code class="highlighter-rouge">DbFoo</code> (database object) and <code class="highlighter-rouge">Foo</code> (business object) have
+exactly the same properties on them but are “duplicated” (not really duplicate,
+but seems that way) to maintain separation of layers, then using
+AutoMapper is a huge win.</p>
+
+<p>Let’s say the classes look like this:</p>
+
+<figure class="highlight"><pre><code class="language-csharp" data-lang="csharp"><span class="c1">// The class representing the db table
+</span><span class="k">public</span> <span class="k">class</span> <span class="nc">DbUser</span>
+<span class="p">{</span>
+    <span class="k">public</span> <span class="kt">int</span> <span class="n">UserId</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
+    <span class="k">public</span> <span class="kt">string</span> <span class="n">UserName</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
+    <span class="k">public</span> <span class="kt">string</span> <span class="n">Email</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="c1">// The "business logic" class
+</span><span class="k">public</span> <span class="k">class</span> <span class="nc">User</span>
+<span class="p">{</span>
+    <span class="k">public</span> <span class="kt">int</span> <span class="n">UserId</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
+    <span class="k">public</span> <span class="kt">string</span> <span class="n">UserName</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
+    <span class="k">public</span> <span class="kt">string</span> <span class="n">Email</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
+<span class="p">}</span></code></pre></figure>
+
+<p>In this case, mapping with AutoMapper just looks like this:</p>
+
+<figure class="highlight"><pre><code class="language-csharp" data-lang="csharp"><span class="n">Mapper</span><span class="p">.</span><span class="n">CreateMap</span><span class="p">&lt;</span><span class="n">DbUser</span><span class="p">,</span> <span class="n">User</span><span class="p">&gt;();</span></code></pre></figure>
+
+<p>Whereas without AutoMapper you’d have something like this:</p>
+
+<figure class="highlight"><pre><code class="language-csharp" data-lang="csharp"><span class="k">public</span> <span class="k">static</span> <span class="n">User</span> <span class="nf">MapUser</span><span class="p">(</span><span class="n">DbUser</span> <span class="n">user</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="k">return</span> <span class="k">new</span> <span class="n">User</span>
+    <span class="p">{</span>
+        <span class="n">UserId</span> <span class="p">=</span> <span class="n">user</span><span class="p">.</span><span class="n">UserId</span><span class="p">,</span>
+        <span class="n">UserName</span> <span class="p">=</span> <span class="n">user</span><span class="p">.</span><span class="n">UserName</span><span class="p">,</span>
+        <span class="n">Email</span> <span class="p">=</span> <span class="n">user</span><span class="p">.</span><span class="n">Email</span>
+    <span class="p">};</span>
+<span class="p">}</span></code></pre></figure>
+
+<p>If all of my models matched the other layers this directly, I’d probably use
+AutoMapper.  Unfortunately a non-trivial app is unlikely to be this
+straightforward, which in my opinion, is where AutoMapper <em>can</em> work, but
+starts losing its value.</p>
+
+<h3 id="problem-1-losing-compile-time-safety">Problem 1: Losing Compile-time Safety</h3>
+
+<p>One of my biggest gripes with AutoMapper is that it takes a strongly-typed
+language (C#) and makes all mappings computed at runtime. In other words, you
+don’t know if your mappings work until you run them. This is a problem even in
+the simple case mentioned above. Let’s say a particularly picky developer
+decided to rename the <code class="highlighter-rouge">Email</code> column on the <code class="highlighter-rouge">DbUser</code> class to <code class="highlighter-rouge">EmailAddress</code>,
+but either forgets or can’t update the <code class="highlighter-rouge">User</code> object due to its
+numerous uses. Now your AutoMapper mapping just broke but you have no
+idea. Not only will it not tell you at compile time, but this sort of
+change will silently fail. The property that doesn’t map will simply be
+ignored. As far as I’m aware, this is by design.</p>
+
+<p>Compare to the manual mapper and simply building will reveal this bug.</p>
+
+<h3 id="problem-2-no-static-analysis">Problem 2: No Static Analysis</h3>
+
+<p>I use Visual Studio’s and ReSharper’s static analysis tools frequently, such as
+Find Usages. While refactoring, I need to make sure all uses of something were
+updated correctly. If I make a change like in the last example but I’m using
+AutoMapper, it’s now a lot harder to exhaustively find all uses of a class or
+one of its properties. I’ve found this not only leads to bugs, but also extra
+mappers that should be deleted but no one is confident enough that they can be
+safely removed. The problem is, the only way you can test an AutoMapper mapping
+is by hitting each use of it at runtime which usually isn’t practical in a
+large codebase.</p>
+
+<h3 id="problem-3-debugging">Problem 3: Debugging</h3>
+
+<p>There’s probably better debugging methods than what I’ve done in the past, but
+after using AutoMapper for several months I have spent cumulative <em>hours</em>
+debugging mappings that don’t work. These were usually very simple bugs that
+were rather embarrassing, but the bottom line is that it would’ve been caught
+at compile time if it were a manual mapper. This of course assumes that I
+actually know there’s a bug and the code isn’t suffering from Problem 1 above.</p>
+
+<h3 id="problem-4-customization--lots-of-syntax">Problem 4: Customization = Lots of Syntax</h3>
+
+<p>AutoMapper can handle more complex mappings, but this comes at a cost of either
+writing these mappings in lambda expressions, or factoring them out into custom
+mappers. The former works for awhile, but if your logic isn’t incredibly
+straightforward then the expression will become very difficult to read. The
+latter I haven’t personally explored, because I feel that if I have to add that
+much code for an AutoMapper mapping, then I’ve completely defeated the point
+and should just write a regular mapper method.</p>
+
+<h3 id="problem-5-only-11-mappings-supported">Problem 5: Only 1:1 Mappings Supported</h3>
+
+<p>As far as I know, a mapping can only take one object and spit out a result. It
+can’t map two objects into a third object. I run into this case pretty
+frequently. Here’s an example when querying two different data sources:</p>
+
+<figure class="highlight"><pre><code class="language-csharp" data-lang="csharp"><span class="n">FooApiDto</span> <span class="n">fooApiDto</span> <span class="p">=</span> <span class="n">await</span> <span class="n">fooApiService</span><span class="p">.</span><span class="nf">GetFooApiDto</span><span class="p">();</span>
+<span class="n">FooApiDto2</span> <span class="n">fooApiDto2</span> <span class="p">=</span> <span class="n">await</span> <span class="n">fooApiService2</span><span class="p">.</span><span class="nf">GetFooApiDto2</span><span class="p">();</span>
+
+<span class="c1">// Can't do this; wish I could
+</span><span class="n">Foo</span> <span class="n">foo</span> <span class="p">=</span> <span class="n">Mapper</span><span class="p">.</span><span class="n">Map</span><span class="p">&lt;</span><span class="n">Foo</span><span class="p">&gt;(</span><span class="n">fooApiDto</span><span class="p">,</span> <span class="n">fooApiDto2</span><span class="p">);</span></code></pre></figure>
+
+<p>Another common example is while taking in form input:</p>
+
+<figure class="highlight"><pre><code class="language-csharp" data-lang="csharp"><span class="k">public</span> <span class="n">async</span> <span class="n">Task</span><span class="p">&lt;</span><span class="n">ActionResult</span><span class="p">&gt;</span> <span class="nf">Index</span><span class="p">(</span><span class="n">FooProfile</span> <span class="n">fooProfile</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="kt">string</span> <span class="n">userId</span> <span class="p">=</span> <span class="k">this</span><span class="p">.</span><span class="n">User</span><span class="p">.</span><span class="n">Identity</span><span class="p">.</span><span class="nf">GetUserId</span><span class="p">();</span>
+
+    <span class="c1">// Can't do this :(
+</span>    <span class="n">FooUserDto</span> <span class="p">=</span> <span class="n">Mapper</span><span class="p">.</span><span class="n">Map</span><span class="p">&lt;</span><span class="n">FooUserDto</span><span class="p">&gt;(</span><span class="n">userId</span><span class="p">,</span> <span class="n">fooProfile</span><span class="p">);</span>
+<span class="p">}</span></code></pre></figure>
+
+<h3 id="alternative">Alternative?</h3>
+
+<p>I think mapping between object formats is the most tedious part of
+programming (in MVC anyway) when it comes to adding features or refactoring and
+it seems like such a waste of time. I’ve yet to find a viable alternative to
+writing manual mappers as shown above, but this seems like the simplest and
+least error prone method, even if it does add a ton of code and possibly
+require more time up front. It really doesn’t take long to write mappers and I
+like not running into mapper bugs. That said, it does feel pretty lame to write
+<code class="highlighter-rouge">UserId = user.UserId</code>…it just seems so obvious that a computer should be
+able to do it for me. But that’s AutoMapper, and I don’t think the advantages
+are worth the disadvantages it brings.</p>
+
+<p>If you’ve solved this problem a different way, please let me know in the
+comments below. There’s got to be a million dollar bounty on that one.</p>
+
+  </article>
+
+  <div id="disqus_thread"></div>
+<script>
+var disqus_config = function () {
+    this.page.url = 'https://127.0.0.1/2016/06/16/automapper.html';
+    this.page.identifier = '/2016/06/16/automapper';
+};
+(function() { // DON'T EDIT BELOW THIS LINE
+    var d = document, s = d.createElement('script');
+    s.src = '//planetlotus.disqus.com/embed.js';
+    s.setAttribute('data-timestamp', +new Date());
+    (d.head || d.body).appendChild(s);
+})();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript" rel="nofollow">comments powered by Disqus.</a></noscript>
+
+
+</div>
+
+      </div>
+    </div>
+
+    <footer class="site-footer">
+
+  <div class="wrapper">
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col  footer-col-2">
+        <ul class="social-media-list">
+          
+          <li>
+            <a href="https://github.com/PlanetLotus">
+              <span class="icon  icon--github">
+                <svg viewBox="0 0 16 16">
+                  <path fill="#828282" d="M7.999,0.431c-4.285,0-7.76,3.474-7.76,7.761 c0,3.428,2.223,6.337,5.307,7.363c0.388,0.071,0.53-0.168,0.53-0.374c0-0.184-0.007-0.672-0.01-1.32 c-2.159,0.469-2.614-1.04-2.614-1.04c-0.353-0.896-0.862-1.135-0.862-1.135c-0.705-0.481,0.053-0.472,0.053-0.472 c0.779,0.055,1.189,0.8,1.189,0.8c0.692,1.186,1.816,0.843,2.258,0.645c0.071-0.502,0.271-0.843,0.493-1.037 C4.86,11.425,3.049,10.76,3.049,7.786c0-0.847,0.302-1.54,0.799-2.082C3.768,5.507,3.501,4.718,3.924,3.65 c0,0,0.652-0.209,2.134,0.796C6.677,4.273,7.34,4.187,8,4.184c0.659,0.003,1.323,0.089,1.943,0.261 c1.482-1.004,2.132-0.796,2.132-0.796c0.423,1.068,0.157,1.857,0.077,2.054c0.497,0.542,0.798,1.235,0.798,2.082 c0,2.981-1.814,3.637-3.543,3.829c0.279,0.24,0.527,0.713,0.527,1.437c0,1.037-0.01,1.874-0.01,2.129 c0,0.208,0.14,0.449,0.534,0.373c3.081-1.028,5.302-3.935,5.302-7.362C15.76,3.906,12.285,0.431,7.999,0.431z"/>
+                </svg>
+              </span>
+
+              <span class="username">PlanetLotus</span>
+            </a>
+          </li>
+          
+
+          
+        </ul>
+      </div>
+
+      <div class="footer-col  footer-col-3">
+        <p class="text">Side project ramblings, lessons learned, and ravings about awesome software.
+</p>
+      </div>
+    </div>
+
+  </div>
+
+</footer>
+
+
+  </body>
+
+</html>
