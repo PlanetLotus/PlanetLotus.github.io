@@ -13,11 +13,11 @@ see empty space.
 
 Before:
 
-![]({{ site.url }}/images/before-layers.png)
+![]({{ site.github.url }}/images/before-layers.png)
 
 After:
 
-![]({{ site.url }}/images/after-layers.png)
+![]({{ site.github.url }}/images/after-layers.png)
 
 Since this is purely cosmetic and obviously required lots of
 tedious editing to both my level editor at the game itself, I never thought I'd
@@ -43,7 +43,7 @@ but instead were more triangular. For those (and there were way too many) I had
 to hand draw each section of the background behind the partial tile. Below is a
 screenshot of one of these tiles.
 
-![]({{ site.url }}/images/partial-tile-with-background.png)
+![]({{ site.github.url }}/images/partial-tile-with-background.png)
 
 Alright, so that was terrible. What's next?
 

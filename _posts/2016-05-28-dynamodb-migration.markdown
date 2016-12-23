@@ -63,7 +63,7 @@ With the help of a coworker, we broke this down into these simple-ish steps:
 3. Make the production process write only to the new table
 4. Make the migrator scan the old table, writing to the new table but only if that document doesn't already exist in the new table
 
-![]({{ site.url }}/images/dynamodb-migration/steps.png "Now you see why I didn't go into graphic design. Next time I'll at least use something other than Paint.")
+![]({{ site.github.url }}/images/dynamodb-migration/steps.png "Now you see why I didn't go into graphic design. Next time I'll at least use something other than Paint.")
 
 The important thing to note here is that once the migration starts, the old
 table will never be written to again. It'll only be read from if the document
@@ -114,9 +114,9 @@ was going to lose sleep making sure it finished. I spent about an hour looking
 at AWS's wonderful metrics trying to figure out why throughput suddenly tanked
 to about 40% of where it was.
 
-![]({{ site.url }}/images/dynamodb-migration/old-table-reads.png "Reads on the old table over time")
+![]({{ site.github.url }}/images/dynamodb-migration/old-table-reads.png "Reads on the old table over time")
 
-![]({{ site.url }}/images/dynamodb-migration/writes.png "Writes on the new table over time")
+![]({{ site.github.url }}/images/dynamodb-migration/writes.png "Writes on the new table over time")
 
 I'm still not totally sure what went wrong, but I think it had something to do
 with my scanning of the old table. At some point, the scanning wasn't returning
@@ -127,7 +127,7 @@ no "lesson learned" here; I'll just have to keep an eye on scanning behavior as
 the table grows. If you know what I may have missed, please let me know with a
 comment below.
 
-![Table scan showing decreased result count over time]({{ site.url }}/images/dynamodb-migration/scan-results.png "Scan of the old table")
+![Table scan showing decreased result count over time]({{ site.github.url }}/images/dynamodb-migration/scan-results.png "Scan of the old table")
 
 ### Conclusion
 
