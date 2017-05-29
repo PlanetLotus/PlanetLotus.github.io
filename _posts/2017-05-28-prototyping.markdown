@@ -23,24 +23,24 @@ mechanics.
 Do you have better questions for any of my examples below? If so, leave a comment.
 
 Arcade
-======
+----
 
 Pong
-----
+====
 
 - Can I make controls that feel good for the player?
 - Can I make an AI that doesn’t win easily but isn’t useless either?
 - Can I make unrealistic but compelling physics for the ball?
 
 Space Invaders
-----
+====
 
 - Can I make it increasingly difficult but not impossible to fend off waves of enemies that descend toward the player?
 - What’s a good number of enemies per level?
 - How fast should the enemies move?
 
 Tetris
-----
+====
 
 - Can I make the pieces rotate while they fall (and “feel good” controls)?
 - Will "random" pieces make it possible for the player to win indefinitely?
@@ -48,33 +48,33 @@ Tetris
 - Is it satisfying to clear a row or multiple rows at once?
 
 Traditional Platformer
-======
+-----
 
 Super Mario Bros
-----
+====
 
 - Can I invent physics that aid gameplay and aren’t frustrating?
 - Is jumping on an enemy simple enough for the player to be a common part of gameplay?
 
 Commander Keen 4
-----
+====
 
 - Is it fun to shoot enemies rather than jump on them?
 - What kinds of levels can I create with the addition of the pogo stick? Is it significantly different than just jumping and climbing?
 - Does the ability to hang from ledges make the physics less frustrating?
 
 First-Person Shooter
-======
+-----
 
 Doom
-----
+====
 
 - Can a mouse be used to aim and shoot multiple enemies on screen quickly?
 - Should we allow the player to be hit once or multiple times without dying? Can he heal?
 - Are different enemy types a good difficulty progression? What about different weapons?
 
 Counter-Strike
-----
+====
 
 - Can I create a compelling realistic shooter?
 - Can I use different weapon types in the same game and have a balanced game?
@@ -83,7 +83,7 @@ Counter-Strike
 - What if movement speed changed accuracy?
 
 Call of Duty 4
-----
+====
 
 - Is it viable to pursue killstreak unlocks? How many killstreaks should there be?
 - Can I create a balanced game where different players use different classes?
@@ -92,10 +92,10 @@ Call of Duty 4
 - Can different game modes other than deathmatch be used on the same map?
 
 Real-Time Strategy
-======
+-----
 
 Starcraft
-----
+====
 
 - Can I create a compelling AI when there are so many decisions to make?
 - Should I create multiple races to choose from or just one?
@@ -104,26 +104,26 @@ Starcraft
 (For something as complex as Starcraft, there were probably many prototyped ideas)
 
 RPG
-======
+-----
 
 Pokemon
-----
+====
 
 - Can I make a turn-based fighting scene fun and strategic?
 - Do I feel compelled to catch as many unique Pokemon as I can?
 
 Diablo II
-----
+====
 
 - Can I use the mouse to both fight and move?
 - What kinds of stats should the player have?
 - Is grinding for experience and items fun?
 
 Casual
-======
+-----
 
 Stardew Valley
-----
+====
 
 - Should the dungeon be procedurally generated?\*
 - Is it fun to care for the crops?
@@ -132,7 +132,7 @@ Stardew Valley
 \* I've read about SV being created. This was originally part of the design and was cut out.
 
 Conclusions
-==========
+--------
 
 After this exercise, I learned that I came up with two basic types of questions:
 
