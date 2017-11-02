@@ -1,0 +1,146 @@
+---
+layout: post
+title: "Why Your Pull Requests Should Be Small"
+description: "How to make shipping code easier by creating smaller PRs."
+tags: [work, process]
+---
+
+Have you ever been responsible for reviewing a teammate's pull request before
+it ships? Obviously not all pull requests are created equal, but what can we do
+to make the process efficient, accurate, and as low stress as possible?
+
+Encourage small PRs.
+
+The Problem With Big PRs
+========================
+
+This scenario may sound familiar: Your boss asks you how long it'll take to
+implement this sweet new feature for your company's flagship product. You give
+an estimate your best shot with, "No more than a good, focused week."
+
+Four days later you finish the last requirement (a day early, even!), test
+locally, and open a pull request. Now it's a matter of waiting for a teammate
+to review your code before it can ship. You send your poor teammate a link to
+your 1000-line pull request and wait for the applause for your, obviously,
+brilliant and elegant implementation.
+
+...and then it sits for a week. You have a bit of back and forth with your
+teammates, addressing both small and large concerns. It finally gets approved a
+week later and your boss looks at you funny considering how confident you were
+it would only take a week, but it took two to actually deliver! You think to
+yourself, well it's not my fault, it was done in four days and my teammates
+were just unable to review it with their limited free time!
+
+Walk back from that last point. Why did it take your teammates so long to
+review? Is there anything you could've done to make that process easier? Of
+course there are many possibilities, but this post is strictly about how much
+code you're asking your teammates to review all at once.
+
+Now put yourself in your reviewer's shoes. They probably have their own code to
+write, or they at least have other priorities. Your pull request is probably at
+the bottom of their list. It's important, because the company has already paid
+to have that code written and now it's sitting there not delivering value, but
+as a reviewer, it's still easy to prioritize their work over yours. Now imagine
+them looking at a 1000-line PR vs. a 500-line (or even 200-line) PR. Not all
+lines of code are created equal, but it's reasonable to assume that the more
+changes there are, the harder it is for the reviewer to wrap their brain around
+and actually review adequately. They first have to understand what the code is
+supposed to accomplish, then whether it does that, then check for bugs,
+inconsistencies, etc. After they make a couple suggestions, you might implement
+the suggestions which changes another 200 lines of code. Oh great, now they
+have to basically start their review over. At the end of the day, the number of
+changes has a large effect on how long it takes to review your code.
+
+The Difference Small PRs Make
+=============================
+
+Given the above, smaller PRs generally are quicker to review and therefore
+ship sooner. This in turn means value can be delivered faster. After shipping,
+if an unknown bug slips through and wreaks havoc, the amount of changes
+you have to consider is much smaller.
+
+How To Write Small PRs
+======================
+
+Sometimes certain features or fixes are hard to make in small increments. Maybe
+your changes involve lots of refactoring, maybe it's a full stack change, maybe
+other systems depend on your change which introduces more code...these are
+common scenarios that result in large PRs. There isn't a foolproof answer to
+these, but simply thinking about how to make this possible makes a difference.
+
+Take a typical full stack change on a website for example. You might make
+some schema changes which then affect the model. Maybe even multiple models
+that have related logic. Additionally, the way you're displaying this data
+changes so there are a bunch of frontend HTML/CSS/JS changes too. Database
+changes, business logic changes, and frontend changes quickly add up to a lot
+of code and sometimes it all has to be shipped at once.
+
+Consider whether your feature can be split into two features. This isn't always
+possible, but a little thought here can help a lot. What is the minimum
+functionality your feature needs to have in order to add value? That's one PR.
+Get that done, get it in review, then work on your next PR.
+
+If that doesn't work, consider shipping just the "invisible" stuff - the
+backend changes. This is a low-risk way of adding a lot of complexity. You're
+verifying it doesn't break anything that already exists without risking that
+the new features don't also break. Additionally, your changes will be much
+smaller. Feature flagging can also be useful here.
+
+Real-World Examples
+===================
+
+Writing Features
+----------------
+
+The above comes off as contrived without hard examples. I can't get too
+specific with what I've done, but I can go into a little more detail to help
+explain how to approach this problem. Recently I was asked to implement a
+full-stack feature for a website (not my usual job, by the way; lately I've
+been much more backend). It was handed to me as one feature, but I split it into three.
+
+It made sense that this was one feature, but I knew it would be a lot of
+changes so I made it a priority to work with the design department and
+stakeholders to make the changes smaller. The first feature was easy; it was
+simply an empty state that should've already existed. But, in the context of
+the entire feature, it made a lot more sense. Still, because it delivers value
+on its own, I wrote this small empty state in an hour or so and shipped it.
+Very small changes that were quickly approved and shipped.
+
+The second and third features were much more involved. These actually were not
+easy to split up but it was very important that this not become some gigantic
+feature. Again, I identified the smallest piece of functionality that would
+deliver value to our customers. I can't be too specific here, but it's worth
+pointing out that this required discussion with the design dept and
+stakeholders in order to make this work. For that reason, I encourage reaching
+out to everyone involved to see how you can make it easier for yourself and
+everyone else. It's worth it. Note that this most likely needs done before you
+start writing the feature.
+
+This paid off even more than I thought it would, because I ended up
+misunderstanding the requirements for the third feature which added a lot of
+unexpected complexity. I can't imagine what it would've been like if
+all of that functionality shipped as one feature. It would've been much harder
+to be confident about the changes.
+
+Reviewing Features
+------------------
+
+On the other hand, I've also reviewed large PRs lately and seen others review
+PRs that were unnecessarily large. I found this came down to a few simple
+values that I encourage coworkers to pay attention to:
+
+- Don't add cosmetic changes to your feature branch unless it's directly related to the code you're changing
+- Similarly, don't refactor code just because you noticed it didn't meet your standards, again unless you're already changing that code
+- Write your code to be read. Ask reviewers how to make their job easier
+- Adopt a mindset of delivering value as quickly as possible; code that is sitting in review is delivering no value
+- Take ownership of your code. If it's not shipping, that's on you, not the reviewer
+
+I think these principles would solve nearly all of the problems I've seen
+lately with large PRs, especially if combined with a dedicated effort to split
+up features. As a reviewer, you have to teach others to think this way if it
+isn't intuitive to them already. Personally I started paying a lot more
+attention as soon as I became responsible for making sure code got shipped, so
+this hasn't always been so important to me.
+
+Have you run into this problem with your teammates? What did you do to improve
+as a team? Let me know in the comments below whether I've missed anything.
