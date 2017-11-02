@@ -12,7 +12,7 @@ to make the process efficient, accurate, and as low stress as possible?
 Encourage small PRs.
 
 The Problem With Big PRs
-========================
+------------------------
 
 This scenario may sound familiar: Your boss asks you how long it'll take to
 implement this sweet new feature for your company's flagship product. You give
@@ -52,7 +52,7 @@ have to basically start their review over. At the end of the day, the number of
 changes has a large effect on how long it takes to review your code.
 
 The Difference Small PRs Make
-=============================
+-----------------------------
 
 Given the above, smaller PRs generally are quicker to review and therefore
 ship sooner. This in turn means value can be delivered faster. After shipping,
@@ -60,7 +60,7 @@ if an unknown bug slips through and wreaks havoc, the amount of changes
 you have to consider is much smaller.
 
 How To Write Small PRs
-======================
+----------------------
 
 Sometimes certain features or fixes are hard to make in small increments. Maybe
 your changes involve lots of refactoring, maybe it's a full stack change, maybe
@@ -87,15 +87,15 @@ the new features don't also break. Additionally, your changes will be much
 smaller. Feature flagging can also be useful here.
 
 Real-World Examples
-===================
+-------------------
 
 Writing Features
-----------------
+================
 
 The above comes off as contrived without hard examples. I can't get too
 specific with what I've done, but I can go into a little more detail to help
 explain how to approach this problem. Recently I was asked to implement a
-full-stack feature for a website (not my usual job, by the way; lately I've
+full stack feature for a website (not my usual job, by the way; lately I've
 been much more backend). It was handed to me as one feature, but I split it into three.
 
 It made sense that this was one feature, but I knew it would be a lot of
@@ -123,7 +123,7 @@ all of that functionality shipped as one feature. It would've been much harder
 to be confident about the changes.
 
 Reviewing Features
-------------------
+==================
 
 On the other hand, I've also reviewed large PRs lately and seen others review
 PRs that were unnecessarily large. I found this came down to a few simple
