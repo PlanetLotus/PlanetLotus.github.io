@@ -24,4 +24,4 @@ The original idea for this project was limited to binary tree algorithms, but I 
 
 To kick this off, I have a quick demo of my bubble sort animation. It doesn't show the full sort because it's fairly long, but it's enough to get the idea where it's headed. My next step is to finish animating quicksort and upload a video of that.
 
-<iframe width="560" height="315" src="https://www.youtube.com/embed/c87btyr7Qw8" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+<iframe width="720" height="480" src="https://www.youtube.com/embed/c87btyr7Qw8" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
