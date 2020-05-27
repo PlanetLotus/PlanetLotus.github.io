@@ -2,7 +2,7 @@
 layout: post
 title: "How to estimate development projects"
 description: "A quick tip to make estimates more useful for you and your boss."
-tags: [mongodb]
+tags: [communication]
 ---
 
 # How long will that take?
