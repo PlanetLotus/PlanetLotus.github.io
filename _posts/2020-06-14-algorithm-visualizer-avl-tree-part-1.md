@@ -2,7 +2,7 @@
 layout: post
 title: "Algorithm Visualizer - AVL Tree - Part 1"
 description: "The challenges of programmatically drawing a self-balancing binary search tree."
-tags: [projects]
+tags: [algorithm visualizer]
 ---
 
 # AVL Tree in Unity
