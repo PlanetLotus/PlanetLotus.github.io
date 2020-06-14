@@ -2,7 +2,7 @@
 layout: post
 title: "Algorithm Visualizer - Quicksort"
 description: "A useful sorting algorithm, animated in Unity."
-tags: [projects]
+tags: [algorithm visualizer]
 ---
 
 # Quicksort in Unity
