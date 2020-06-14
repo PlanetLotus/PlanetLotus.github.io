@@ -2,7 +2,7 @@
 layout: post
 title: "Algorithm Visualizer - Project Kickoff"
 description: "A Unity project for learning about various computer science algorithms."
-tags: [projects]
+tags: [algorithm visualizer]
 ---
 
 # New Project - Algorithm Visualizer
