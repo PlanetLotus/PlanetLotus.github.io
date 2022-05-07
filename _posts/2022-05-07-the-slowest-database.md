@@ -77,19 +77,22 @@ Before reading the next section, imagine how fast these functions are on a 1 MB 
 I generated a 1 MB and a 1 GB database. For this iteration, I'm focused on read operations, not writes.
 
 This is running on the following hardware:
+    
+```
 i5-4670 3.4 GHz
 16 GB RAM
 Samsung 850 EVO SSD
-
+```
+    
 1 MB:
 
-```
+```    
 Found 387,518 records in 33 ms
 Found 10/10 CommonWords in 1 ms
 Found 10/10 LessCommonWords in 27 ms
 Found 0/10 NotWords in 344 ms
-```
-  
+```  
+    
 1 GB:
 
 ```
