@@ -4,8 +4,6 @@ title: "The slowest database in the world"
 description: "How slow can we make a database if we try? Is it still faster than you thought?"
 tags: [slowdb]
 ---
-# The slowest database in the world
-
 Think of a file with one word on each line and the file is 1 MB. How long would it take to find a specific word in that file?
 
 Let's make this more concrete with some design details for this "database":
