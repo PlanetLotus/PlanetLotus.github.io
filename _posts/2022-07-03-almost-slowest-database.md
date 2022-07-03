@@ -54,10 +54,10 @@ I made other changes to the code to make it easier to extend, mostly just refact
 
 I made a few changes to the benchmark since last time. I added timings for seeding the database (currently just a 1 MB file), inserts, and deletes, as well as the ability to benchmark all implementations at once without making code changes. The main thing left here (besides adding more tests) is improved formatting so it's easier to compare implementations, but I will put time into this in the future.
 
-| | Seed 1 MB | Insert 10 words | Get total count | Search 10 common words | Search 10 less common words | Search 10 made up words | Delete 10 words |
-| - | --------- | --------------- | --------------- | ---------------------- | --------------------------- | ----------------------- | --------------- |
-| StringDb (original) | 692 ms | 8 ms | 57 ms | 182 ms | 177 ms | 171 ms | 1823 ms |
-| StringDb (new) | 730 ms | 17 ms | 0 ms | 188 ms | 179 ms | 171 ms | 2161 ms |
+| | Seed 1 MB | Insert 10 words | Get total count | Search 10 words | Delete 10 words |
+| - | --------- | --------------- | --------------- | ---------------------- | --------------------------- | 
+| Original DB | 692 ms | 8 ms | 57 ms | 182 ms | 1823 ms |
+| New DB | 730 ms | 17 ms | 0 ms | 188 ms | 2161 ms |
 
 ## Thoughts
 
