@@ -5,8 +5,6 @@ description: "Data migrations are scary. Here's how to gain a better understandi
 tags: [work]
 ---
 
-# How to write custom data migrations
-
 Migrating data is hard. Data migrations vary greatly, such as reformatting data within a database, moving data to a new database, or just changing how it's accessed in a non-breaking way.
 
 Depending on the size of the data, you may decide it's worth it to take the data offline for the duration, but often this isn't an option. Your data has to migrate in a non-breaking way while remaining online.
