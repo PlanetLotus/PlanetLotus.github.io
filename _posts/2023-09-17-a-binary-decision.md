@@ -5,7 +5,7 @@ description: "It finally gets fast-ish."
 tags: [slowdb]
 ---
 
-_This is part 4 in the Slowest Database series. Be sure to check out [part 1](https://planetlotus.github.io/2022/05/07/the-slowest-database.html) first._
+_This is part 5 in the Slowest Database series. Be sure to check out [part 1](https://planetlotus.github.io/2022/05/07/the-slowest-database.html) first._
 
 Background
 ==========
